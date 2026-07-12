@@ -1,0 +1,12 @@
+{
+  "name": "deno-npm-toolchain-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Deliberately old, pinned deps so `npm audit` / `deno audit` have something to find, chalk pulls an undeclared transitive (has-flag) for the phantom-dep check, and all three are pure-JS (no native addons). Never use these versions in real code.",
+  "dependencies": {
+    "lodash": "4.17.15",
+    "minimist": "1.2.5",
+    "chalk": "4.1.2"
+  }
+}

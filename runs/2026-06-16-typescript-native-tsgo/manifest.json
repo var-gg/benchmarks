@@ -1,0 +1,49 @@
+{
+  "run_id": "2026-06-16-typescript-native-tsgo",
+  "post_slug": "typescript-native-tsgo",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/typescript-native-tsgo",
+    "en": "https://var.gg/en/blog/typescript-native-tsgo"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-16T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This run was executed on 2026-06-16 against var.gg's private frontend monorepo; its raw timing/diagnostic logs were discarded per the finite-disk policy and predate this repo. Unlike a fixture-backed run there is NO shareable input here — the subject codebase is private (see the reproducibility block). run.sh is therefore a GENERIC, reconstructed harness a reader points at their OWN repo to reproduce the METHOD, not our absolute numbers. results.json holds the numbers measured on our monorepo on 2026-06-16. No artifact hashes were captured at run time and none are fabricated.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64",
+    "node": "v24.15.0",
+    "timing_tool": "PowerShell Measure-Command",
+    "note": "Timing is machine-, disk-, and codebase-dependent. The speed RATIO (tsgo vs tsc) is a more portable signal than absolute seconds, and even the ratio is scale-dependent (see results.json)."
+  },
+
+  "subject": {
+    "name": "tsgo (@typescript/native-preview)",
+    "version": "7.0.0-dev.20260616.1",
+    "install": "npx @typescript/native-preview --noEmit",
+    "note": "The Go-native TypeScript compiler preview. Invoked as `tsgo`. A 7.0-dev build — a different type-checker version from the 6.0.3 baseline below."
+  },
+  "baseline": {
+    "name": "tsc",
+    "version": "6.0.3",
+    "install": "the repo's local TypeScript (npx tsc --noEmit)",
+    "note": "The JavaScript self-hosted compiler. 6.0.3 was the version resolved in the subject monorepo on the run date."
+  },
+
+  "reproducibility": {
+    "subject_codebase": "private",
+    "codebase_size": "728 .ts/.tsx files",
+    "codebase_kind": "Next.js App Router monorepo (var.gg apps/frontend)",
+    "tsconfig": "noEmit + incremental + skipLibCheck + strict",
+    "fixture": "none — nothing shareable exists to ship",
+    "note": "The subject numbers in results.json were measured on var.gg's private apps/frontend monorepo (Next.js App Router, 728 .ts/.tsx files; tsconfig: noEmit, incremental, skipLibCheck, strict). That codebase is not shareable, so a third party CANNOT reproduce our exact seconds or our diagnostic counts — they do not have our source. What IS fully reproducible is the METHOD: run.sh is a generic harness you point at YOUR OWN TypeScript repo (pass the repo dir as $1, default: current dir). It runs `tsc --noEmit` vs `npx @typescript/native-preview --noEmit`, times both cold+warm, and diffs the diagnostics. No fixture ships with this run because there is nothing shareable to ship. The portable claims — tsgo is meaningfully faster but the '10x' headline is scale-dependent (~3x at our 728 files), and diagnostics can DIVERGE between tsc and tsgo-preview — hold on any repo; only our absolute numbers are private."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk); also inherently unshareable (private source paths)",
+    "note": "The tsc/tsgo stdout diagnostic dumps and Measure-Command timings were not retained, and could not have been committed anyway since they embed private source paths. No hashes were captured at the time and none are fabricated. The reconstructed generic harness (run.sh) is committed instead — stated plainly rather than inventing artifact hashes."
+  }
+}

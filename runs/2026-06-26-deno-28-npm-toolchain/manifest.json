@@ -1,0 +1,47 @@
+{
+  "run_id": "2026-06-26-deno-28-npm-toolchain",
+  "post_slug": "deno-28-npm-toolchain",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/deno-28-npm-toolchain",
+    "en": "https://var.gg/en/blog/deno-28-npm-toolchain"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-26T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This run was executed on 2026-06-26; its raw artifacts (the standalone deno.exe, both node_modules trees, the DENO_DIR/npm caches) were discarded per the finite-disk policy and predate this repo. run.sh + fixture/package.json are reconstructed from the run's recorded methodology so a third party can reproduce the METHOD. results.json holds the numbers measured on 2026-06-26 — re-running today will drift: install timings are machine/cache-dependent, and audit counts move as the advisory DB updates. No artifact hashes were captured at the time, so none are invented here.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "runtime": "Node v24.15.0 / npm 11.12.1 (the baseline toolchain)",
+    "note": "Install timing is machine- and cache-dependent; the ratio (deno install vs npm install) and the qualitative behaviours are the portable signals, not absolute milliseconds."
+  },
+
+  "subject": {
+    "name": "deno",
+    "version": "2.8.0",
+    "install": "GitHub release v2.8.0 (Windows zip), invoked as a separate binary (nothing global changed)",
+    "note": "Pin 2.8.x in the post. Deno 2.8.0 = 2026-05-22; Deno 2.9.0 shipped 2026-06-25 and changes lockfile seeding (it can seed deno.lock from package-lock/pnpm-lock/yarn.lock/bun.lock), so 2.9 behaviour would not match this run."
+  },
+  "baseline": {
+    "name": "npm",
+    "version": "11.12.1",
+    "install": "bundled with Node v24.15.0",
+    "invocation": "npm install / npm audit / npm ci / npm pack"
+  },
+
+  "data_source": {
+    "name": "GitHub Advisory Database (empirical)",
+    "live": true,
+    "scope": "the audit experiment only (EXP4)",
+    "naming_caveat": "npm audit and deno audit both emitted the same GHSA-* IDs, so empirically they hit the same GitHub Advisory data. We do NOT claim the source is OSV: Deno's own docs name it inconsistently (GitHub CVE / vulnerability databases / npm advisory). The only empirical claim is 'the same GHSA IDs showed up in both'.",
+    "drift_warning": "Vulnerability COUNTS in results.json are as-of 2026-06-26 and will change as the advisory DB adds/updates advisories. The fixture, commands, layout/phantom-dep/pack/parity behaviours, and the install-speed ratio remain reproducible; exact audit counts are a point-in-time snapshot."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "The downloaded deno 2.8.0 binary, both fixture node_modules trees, and the caches were deleted after the run. No hashes were captured at the time (this predates the benchmarks repo). The one hash the run did record — a 12-hex prefix for the identical node/deno program output — is carried through verbatim as a prefix in results.json, not padded into a fabricated full digest. The reconstructed harness is committed instead of fake artifacts."
+  }
+}

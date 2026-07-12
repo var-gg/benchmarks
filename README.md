@@ -19,7 +19,9 @@ most public benchmarks, not less.
 | Date | Run | Post | Kind |
 |---|---|---|---|
 | 2026-07-12 | [2026-07-12-css-anchor-positioning-floating-ui](./runs/2026-07-12-css-anchor-positioning-floating-ui/) | [KO](https://var.gg/ko/blog/css-anchor-positioning-floating-ui) | capability_verification |
+| 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
+| 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
 <!-- RUNS:END -->
 
 ## Layout

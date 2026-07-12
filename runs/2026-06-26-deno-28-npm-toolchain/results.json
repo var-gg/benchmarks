@@ -1,0 +1,80 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-06-26",
+  "note": "Numbers are the 2026-06-26 snapshot on one Windows 11 machine. Install timings are machine/cache-dependent and n is tiny (a couple of self-reported runs, not a distribution); audit counts drift as the advisory DB updates. The durable claims are the install-speed RATIO and the qualitative behaviours (layout, phantom-dep, audit granularity, ci/frozen, pack-is-transpile, Node-API parity, lifecycle scripts).",
+
+  "metrics": [
+    {
+      "id": "cold_install_speed",
+      "label": "Install the same 3-dep fixture (npm warm-cache vs deno fresh DENO_DIR)",
+      "unit": "ms",
+      "subject": {
+        "tool": "deno install",
+        "cache_state": "fresh DENO_DIR (cold)",
+        "ms": 559,
+        "artifacts": "deno.lock; node_modules with 4 top-level entries; no package-lock.json"
+      },
+      "baseline": {
+        "tool": "npm install",
+        "cache_state": "npm cache warm",
+        "ms": 1744,
+        "artifacts": "package-lock.json; node_modules with 8 hoisted dirs"
+      },
+      "ratio": 3.1,
+      "ratio_desc": "deno ~559ms vs npm ~1744ms on this fixture is about 3.1x. A second run (minimist only, fully cold on both sides) was npm 452ms / deno 131ms.",
+      "caveat": "This was npm-WARM vs deno-COLD and deno still won, so the ratio is conservative rather than inflated. Do NOT equate it to Deno's official '3.66x': that figure is Deno 2.7->2.8 self-improvement on Linux (React/Vite/Babel/ESLint installs), NOT a comparison against the npm CLI."
+    }
+  ],
+
+  "findings": [
+    {
+      "id": "layout",
+      "claim": "npm hoists node_modules flat; deno isolates pnpm-style.",
+      "detail": "npm: flat hoist - 3 direct + 5 transitive = all 8 packages sit at the node_modules top level. deno: junction isolation (pnpm-style) - only the 3 declared packages appear as junctions at the top level; the real files live under node_modules/.deno/<pkg>@<ver>/."
+    },
+    {
+      "id": "phantom_dep",
+      "claim": "deno blocks phantom (undeclared transitive) dependencies that node happily resolves.",
+      "detail": "require(\"has-flag\") - an undeclared transitive of chalk (via supports-color) - resolves under node against the flat-hoisted tree (typeof === 'function'), but fails under deno with `Error: Cannot find module 'has-flag'` because deno only exposes declared deps. Same code, opposite result, driven purely by node_modules layout."
+    },
+    {
+      "id": "audit_granularity",
+      "claim": "npm audit and deno audit read the same advisory data but count in different units.",
+      "detail": "Identical GHSA-* IDs appear in both outputs. npm counts per PACKAGE: '2 vulnerabilities (1 high, 1 critical)'. deno counts per ADVISORY: '7 vulnerabilities (3 moderate, 3 high, 1 critical)', exit 1. Same underlying advisories, different denominator.",
+      "caveat": "The only empirical claim is that both surfaced the same GHSA IDs. We do NOT claim the source is OSV: Deno's docs name it inconsistently (GitHub CVE / vulnerability databases / npm advisory). Counts are a 2026-06-26 snapshot and drift as the advisory DB updates."
+    },
+    {
+      "id": "ci_frozen",
+      "claim": "Both reject a lockfile mismatch in ci/frozen mode (exit 1); deno prints a precise integrity diff.",
+      "detail": "npm ci -> EUSAGE 'not in sync, run npm install'. deno install --frozen -> 'The lockfile is out of date' plus a precise lock diff (integrity old/new) and a --frozen=false hint. Both exit 1."
+    },
+    {
+      "id": "pack_transpile",
+      "claim": "deno's publish/pack is a transpiler for distribution, not npm's source zipper.",
+      "detail": "npm pack: zips the source as-is (index.js/test.js/package.json, 4 files, 944B). deno pack (a TS deno.json entry): transpiles mod.ts->mod.js, generates mod.d.ts, and synthesizes a package.json (680B). Deno's own docs state it is 'not equivalent to npm pack'."
+    },
+    {
+      "id": "nodeapi_parity",
+      "claim": "The same Node CommonJS entrypoint produces byte-identical output under node and deno.",
+      "detail": "One index.js run under node and under deno produced identical output bytes (recorded sha256 prefix 7a97f5f99f54); only argv0 differed. 7 tricky builtins - child_process, worker_threads, cluster, v8, vm, process.binding, os.cpus - all worked under deno in a CommonJS context.",
+      "hash_note": "7a97f5f99f54 is the 12-hex prefix the run recorded for BOTH outputs. It is carried through verbatim as a prefix, not padded into a fabricated full digest - the raw files were discarded."
+    },
+    {
+      "id": "require_context",
+      "claim": "`require` availability under deno is context-dependent, not global.",
+      "detail": "Inside a package.json type:commonjs scope require works, but a bare .js file OUTSIDE that scope is treated as ESM by deno -> `require is not defined`. This is a resolution-context boundary, not a missing API - the same file's require works once it is inside the CommonJS scope."
+    },
+    {
+      "id": "lifecycle_scripts",
+      "claim": "npm runs lifecycle scripts (postinstall) on install; deno does not.",
+      "detail": "A root postinstall script ran under `npm install` (it created a marker file) but did NOT run under `deno install`. This cuts both ways: a security win (no arbitrary install-time code execution by default) and a build trap (packages that self-configure via postinstall will not do so under deno install)."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    {
+      "id": "native_addons",
+      "note": "Native addons (node-gyp-built .node binaries) are documented by Deno as a compatibility boundary, but were NOT probed in this run - no native-addon package was installed to force the case (the fixture is pure-JS on purpose). The boundary is reported on the authority of Deno's docs, not reproduced here (no-hallucination guard)."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-06-16",
+  "measured_on": "private 728-file Next.js App Router monorepo (var.gg apps/frontend) — not shareable",
+  "note": "A quick A/B of tsc vs tsgo on one real repo, not a rigorous timing distribution. Timings are self-reported via PowerShell Measure-Command over a handful of runs (cold = after deleting tsconfig.tsbuildinfo; warm = incremental cache present). The durable, portable claims are (1) tsgo is meaningfully faster but the '10x' headline is scale-dependent (~3x at 728 files), and (2) tsc and tsgo-preview diagnostics can DIVERGE. Absolute seconds and diagnostic counts are codebase-specific and are NOT third-party reproducible; only the method (run.sh) is. No raw sample arrays are kept — summary only.",
+
+  "metrics": [
+    {
+      "id": "typecheck_speed",
+      "label": "tsc --noEmit vs tsgo --noEmit on the same repo",
+      "unit": "s",
+      "measured_on": "private 728-file Next.js App Router monorepo (var.gg apps/frontend)",
+      "subject":  { "tool": "tsgo (@typescript/native-preview 7.0.0-dev.20260616.1, Go native)", "cold": 2.1, "warm": 0.7 },
+      "baseline": { "tool": "tsc 6.0.3 (JS self-hosted)", "cold": 6.7, "warm": 1.9 },
+      "ratio_cold": 3.2,
+      "ratio_warm": 2.7,
+      "ratio_desc": "~3.2x faster cold (6.7s -> 2.1s), ~2.7x faster warm (1.9s -> 0.7s) on our repo.",
+      "caveat": "The official '10x' headline is for LARGE codebases. At our scale (728 files, skipLibCheck on) the speedup is ~3x, NOT 10x — honest and reproducible only in trend, not in absolute value. Absolute seconds were measured on a private monorepo and are not third-party reproducible. run.sh reproduces the METHOD on any repo; the durable claim is 'meaningfully faster, magnitude scale-dependent', not a fixed multiple."
+    }
+  ],
+
+  "findings": [
+    {
+      "id": "diagnostics_divergence",
+      "claim": "tsc 6.0.3 and tsgo 7.0-dev do NOT report bit-identical diagnostics on the same source.",
+      "detail": "tsc found 3 errors, all stale generated-file references (TS2307 in .next/types/**, a dangling nf404probe route type — not source bugs). tsgo found 4: the same 3 PLUS one extra TS2769 'No overload matches this call' at src/features/abbreviations/hooks/useInfiniteAbbreviations.ts(82,9), in a useInfiniteQuery({ ... initialData ... }) overload. The file carries //@ts-ignore at lines 67/71/76, but the TS2769 is at line 82 on initialData, so it is a genuinely separate diagnostic, not a suppressed one.",
+      "interpretation": "tsc 6.0.3 and tsgo 7.0-dev are DIFFERENT type-checker versions, so a divergence is not surprising. Whether this specific one is (a) an intended 7.0 tightening, (b) a preview bug, or (c) a 6.0 -> 7.0 overload-selection difference is NOT determinable from this run alone.",
+      "lesson": "Preview diagnostics are not yet guaranteed 100% tsc-identical. When migrating, always DIFF the diagnostics between tsc and tsgo — do not assume a green tsc means a green tsgo, or that tsgo's extra error is a real source bug."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "divergence_cause", "note": "The CAUSE of the diagnostic divergence was not determined. Attributing it to intended tightening vs preview bug vs overload-selection change would require bisecting compiler versions and/or filing an upstream repro — out of scope for this quick A/B." },
+    { "id": "ten_x_at_scale", "note": "The official '10x' claim was NOT reproduced and NOT tested at the scale it targets. We measured only our 728-file repo (~3x). We did not run a large (e.g. 100k+ file) codebase where the 10x figure is claimed to hold, so we neither confirm nor refute it there." }
+  ],
+
+  "caveats": [
+    { "id": "not_third_party_reproducible", "note": "Absolute seconds AND diagnostic counts are specific to var.gg's private 728-file monorepo. A third party cannot reproduce these exact numbers — they do not have our source. Only the METHOD (run.sh) is reproducible, on the reader's own repo. No fixture ships because there is no shareable input." },
+    { "id": "small_n", "note": "Timings are self-reported PowerShell Measure-Command values over a handful of runs, not a measured distribution. Treat the ratio, not the exact seconds, as the signal." }
+  ]
+}
