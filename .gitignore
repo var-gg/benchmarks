@@ -1,0 +1,25 @@
+# Raw artifacts — never committed. The harness regenerates them.
+*.log
+*.trace
+*.json.gz
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.gz
+*.bin
+*.mp4
+*.pdf
+
+# Illustrative screenshots are regenerable (non-deterministic → no hash match). Keep out.
+render-*.png
+*.jpg
+*.jpeg
+
+# Reproduction scratch
+.venv/
+__pycache__/
+node_modules/
+target/
+dist/
+raw/

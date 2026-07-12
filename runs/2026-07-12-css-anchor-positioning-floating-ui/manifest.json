@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-07-12-css-anchor-positioning-floating-ui",
+  "post_slug": "css-anchor-positioning-floating-ui",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/css-anchor-positioning-floating-ui"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-12T06:54:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11",
+    "runner": "Playwright (Python sync API), headless",
+    "note": "This is a CSS feature-support and rendering-behavior check, not a timing benchmark. CPU/GPU/RAM do not affect the result, so they are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "chromium",
+    "version": "147.0.7727.15",
+    "install": "python -m playwright install chromium",
+    "note": "Chromium build bundled with the pinned Playwright version below."
+  },
+  "baseline": {
+    "name": "floating-ui",
+    "note": "Compared conceptually in the post (what CSS now covers vs what still needs JS). No Floating UI code was executed in this run; the comparison is by capability, not by measured timing."
+  },
+
+  "tool": {
+    "name": "playwright",
+    "language": "python",
+    "version": "1.59.0",
+    "python": "3.11.9"
+  },
+
+  "cross_browser": {
+    "firefox": "NOT measured. Local Playwright browser revision mismatch (package expected firefox-1511; a different revision was installed). Firefox support in the post is cited from caniuse/MDN, explicitly flagged as not-firsthand.",
+    "webkit": "NOT measured. Same reason (expected webkit-2272). Safari support is cited, not measured."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "This run produces no large raw artifacts. render-chromium.png is an illustrative screenshot, regenerable by run.sh; it is intentionally not committed (screenshots are non-deterministic and would not hash-match on re-run). The deterministic evidence — probe-result.json (the CSS.supports() matrix) — is committed."
+  }
+}

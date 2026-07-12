@@ -1,0 +1,21 @@
+{
+  "chromium": {
+    "version": "147.0.7727.15",
+    "supports": {
+      "anchor-name": true,
+      "position-anchor": true,
+      "anchor()": true,
+      "position-area": true,
+      "anchor-size()": true,
+      "@position-try(try-fallbacks)": true,
+      "position-visibility": true
+    },
+    "footer": "지원 감지: anchor-name=O · position-anchor=O · anchor()=O · position-area=O · anchor-size()=O | UA: HeadlessChrome/147.0.7727.15 Safari/537.36"
+  },
+  "firefox": {
+    "error": "Error(\"BrowserType.launch: Executable doesn't exist at C:\\\\Users\\\\rhkdw\\\\AppData\\\\Local\\\\ms-playwright\\\\firefox-1511\\\\firefox\\\\firefox.exe\\n╔════════════════════════════════════════════════════════════╗\\n║ Looks like Playwright was just installed or updated.       ║\\n║ Please run the following command to download new browsers: ║\\n║                                                            ║\\n║     playwright install                                     ║\\n║                                                            ║\\n║ <3 Playwright Team                                         ║\\n╚════════════════════════════════════════════════════════════╝\")"
+  },
+  "webkit": {
+    "error": "Error(\"BrowserType.launch: Executable doesn't exist at C:\\\\Users\\\\rhkdw\\\\AppData\\\\Local\\\\ms-playwright\\\\webkit-2272\\\\Playwright.exe\\n╔════════════════════════════════════════════════════════════╗\\n║ Looks like Playwright was just installed or updated.       ║\\n║ Please run the following command to download new browsers: ║\\n║                                                            ║\\n║     playwright install                                     ║\\n║                                                            ║\\n║ <3 Playwright Team                                         ║\\n╚════════════════════════════════════════════════════════════╝\")"
+  }
+}

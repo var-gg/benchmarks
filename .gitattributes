@@ -1,0 +1,9 @@
+# Keep shell/harness files POSIX-clean (LF) so run.sh and hooks work on Linux/macOS + CI.
+* text=auto eol=lf
+*.sh text eol=lf
+.githooks/pre-commit text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.yml text eol=lf

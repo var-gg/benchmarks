@@ -1,0 +1,9 @@
+# sha256 of committed harness + evidence for this run.
+# No large raw artifacts were discarded (this run has none).
+# These hashes let you confirm the harness/evidence you cloned is what was published.
+
+85dfde619b237b57bc53263c68c4656a60c30a409a6870bdf6dd19fed577c13e *probe.py
+00df9c070f38c987ae2eaf6b82959ace9d16b9f7032af30d00076c669f74b56f *demo.html
+ee614d39d9218b6d0714a9fde41177606e82d238041a8bc5634135497acb10d1 *probe-result.json
+f6813e1a9d3abf0c9a35561a206240a444f5f01f69dd856ce43dca51b5773180 *results.json
+bd794775081d1a91632877874e26f24442ac47ba9f145b0bc6dc6f100f6a82c8 *manifest.json

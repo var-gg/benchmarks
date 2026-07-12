@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Block oversize files and run directories from ever entering history.
+# Enable once per clone:  git config core.hooksPath .githooks
+set -euo pipefail
+
+FILE_CAP=$((1024 * 1024))   # 1 MB per file
+DIR_CAP=100                 # 100 KB per run directory
+fail=0
+
+# 1) Staged added/modified files vs the per-file cap + blocked extensions.
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  case "$f" in
+    *.log|*.trace|*.tar|*.tar.gz|*.tgz|*.zip|*.gz|*.bin|*.png|*.jpg|*.jpeg|*.mp4|*.pdf)
+      echo "❌ blocked file type (raw/binary): $f"
+      echo "   Commit summary statistics, not raw artifacts. Charts as SVG."
+      fail=1 ;;
+  esac
+  size=$(wc -c < "$f")
+  if [ "$size" -gt "$FILE_CAP" ]; then
+    echo "❌ file over 1 MB: $f ($((size / 1024)) KB)"
+    fail=1
+  fi
+done < <(git diff --cached --name-only --diff-filter=AM)
+
+# 2) Every run directory vs the 100 KB cap (sum of tracked + staged content).
+if [ -d runs ]; then
+  for d in runs/*/; do
+    [ -d "$d" ] || continue
+    kb=$(du -sk "$d" | cut -f1)
+    if [ "$kb" -gt "$DIR_CAP" ]; then
+      echo "❌ run directory over ${DIR_CAP} KB: $d (${kb} KB)"
+      echo "   Trim raw output; keep harness + summary + manifest only."
+      fail=1
+    fi
+  done
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "pre-commit: size/type gate FAILED — commit rejected."
+  exit 1
+fi
+echo "✅ size/type gate passed"

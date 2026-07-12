@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anchor Positioning firsthand</title>
+<style>
+  :root { font-family: system-ui, sans-serif; }
+  body { margin: 0; padding: 0; }
+  .stage { height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+  header, footer { padding: 10px 16px; background:#0b1220; color:#cfe3ff; font-size:13px; }
+  .field { position: relative; overflow: hidden; }
+
+  /* --- Case A: basic tooltip tethered with anchor() --- */
+  .btnA { anchor-name: --a; position:absolute; top: 60px; left: 60px;
+          padding:10px 16px; border:0; border-radius:8px; background:#2563eb; color:#fff; }
+  .tipA { position: fixed; position-anchor: --a;
+          top: anchor(bottom); justify-self: anchor-center;
+          margin-top: 8px; background:#111827; color:#e5e7eb;
+          padding:8px 12px; border-radius:8px; font-size:14px; white-space:nowrap;
+          box-shadow:0 6px 20px rgba(0,0,0,.35); }
+  .tipA::after { content:""; position:absolute; top:-6px; left:50%; translate:-50% 0;
+          border:6px solid transparent; border-bottom-color:#111827; border-top:0; }
+
+  /* --- Case B: popover near the RIGHT edge, flips via @position-try --- */
+  .btnB { anchor-name: --b; position:absolute; top: 60px; right: 24px;
+          padding:10px 16px; border:0; border-radius:8px; background:#059669; color:#fff; }
+  .cardB { position: fixed; position-anchor: --b;
+           /* default: open to the right of the anchor */
+           left: anchor(right); top: anchor(top);
+           margin-left: 8px;
+           position-try-fallbacks: --flip-left;
+           width: 240px; background:#fff; color:#0f172a; border:1px solid #e2e8f0;
+           border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.5;
+           box-shadow:0 10px 30px rgba(2,6,23,.18); }
+  @position-try --flip-left {
+    left: auto;
+    right: anchor(left);
+    margin-left: 0; margin-right: 8px;
+  }
+
+  /* --- Case C: gotcha — anchor inside overflow:hidden clips the tooltip --- */
+  .clip { position:absolute; bottom: 40px; left: 60px; width:180px; height:70px;
+          overflow:hidden; border:2px dashed #f59e0b; border-radius:8px;
+          display:flex; align-items:center; justify-content:center; background:#fff7ed; }
+  .btnC { anchor-name: --c; padding:8px 12px; border:0; border-radius:6px; background:#d97706; color:#fff; }
+  .tipC { position:absolute; position-anchor: --c;
+          bottom: anchor(top); justify-self:anchor-center; margin-bottom:6px;
+          background:#7c2d12; color:#fff; padding:6px 10px; border-radius:6px; font-size:13px; white-space:nowrap; }
+
+  .tag { position:absolute; font-size:12px; color:#64748b; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header>CSS Anchor Positioning — firsthand (Chromium)</header>
+  <div class="field">
+    <span class="tag" style="top:110px; left:60px;">A. anchor() + anchor-center</span>
+    <button class="btnA">계정 설정</button>
+    <div class="tipA">여기가 버튼 바로 아래에 붙는 툴팁</div>
+
+    <span class="tag" style="top:110px; right:24px;">B. @position-try flip</span>
+    <button class="btnB">알림</button>
+    <div class="cardB"><b>오른쪽이 좁으면</b> position-try-fallbacks가 카드를 버튼 왼쪽으로 뒤집는다. JS 계산 0줄.</div>
+
+    <span class="tag" style="bottom:10px; left:60px;">C. overflow:hidden 함정</span>
+    <div class="clip"><button class="btnC">클릭</button></div>
+    <div class="tipC">이 툴팁은 위 상자에 잘린다</div>
+  </div>
+  <footer id="support">지원 감지 결과: 측정 중…</footer>
+</div>
+<script>
+  const el = document.getElementById('support');
+  const has = (p) => CSS.supports(p);
+  const checks = {
+    'anchor-name': has('anchor-name: --x'),
+    'position-anchor': has('position-anchor: --x'),
+    'anchor()': has('top: anchor(bottom)'),
+    'position-area': has('position-area: top'),
+    'anchor-size()': has('width: anchor-size(width)'),
+  };
+  el.textContent = '지원 감지: ' + Object.entries(checks).map(([k,v])=>`${k}=${v?'O':'X'}`).join(' · ')
+     + '  |  UA: ' + navigator.userAgent.split(') ').pop();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+name: size-gate
+on:
+  push:
+  pull_request:
+
+# A large blob that lands in history cannot be undone. Gate every push and PR.
+jobs:
+  verify-size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce per-file (1 MB) and per-run-dir (100 KB) caps
+        run: bash scripts/verify-size.sh

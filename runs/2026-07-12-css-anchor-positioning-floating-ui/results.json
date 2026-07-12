@@ -1,0 +1,52 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies CSS feature support and rendering behavior, not timing. No statistical distribution applies: CSS.supports() is deterministic for a given browser build, and the three behaviors are pass/fail render observations.",
+
+  "support_matrix": {
+    "browser": "chromium 147.0.7727.15",
+    "method": "CSS.supports() evaluated in-page via Playwright, headless",
+    "source_of_truth": "probe-result.json",
+    "properties": {
+      "anchor-name": true,
+      "position-anchor": true,
+      "anchor()": true,
+      "position-area": true,
+      "anchor-size()": true,
+      "@position-try (position-try-fallbacks)": true,
+      "position-visibility": true
+    }
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "center_tether",
+      "claim": "A tooltip tethers directly below a button and centers horizontally with anchor-center — zero JavaScript.",
+      "verified_on": "chromium 147.0.7727.15",
+      "evidence": "demo.html scenario A, rendered headless"
+    },
+    {
+      "id": "auto_flip",
+      "claim": "With the button at the right viewport edge and the card set to open right, @position-try flips it to the left when the right side overflows — no scroll/resize listeners, no coordinate math in user code.",
+      "verified_on": "chromium 147.0.7727.15",
+      "evidence": "demo.html scenario B, rendered headless"
+    },
+    {
+      "id": "overflow_escape",
+      "claim": "A tooltip placed as a DOM sibling OUTSIDE an overflow:hidden box, but anchored to a button INSIDE it, renders un-clipped — removing the classic reason to portal tooltips to document.body.",
+      "verified_on": "chromium 147.0.7727.15",
+      "evidence": "demo.html scenario C, rendered headless",
+      "caveat": "If the tooltip is a CHILD of the clipping box it is still clipped. The win is that anchor positioning decouples DOM nesting from visual tether, so you can place it where it won't be clipped."
+    }
+  ],
+
+  "not_measured": {
+    "firefox": "Not run (Playwright browser revision mismatch).",
+    "webkit": "Not run (same). Cross-browser behavior differences (e.g. Chrome vs Safari overflow handling) are discussed in the post as 'verify on real devices', not measured here."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Global support is roughly 82%.", "source": "caniuse", "url": "https://caniuse.com/css-anchor-positioning" },
+    { "claim": "Ships by default in Chrome/Edge 125+, Firefox 147+, Safari 26+.", "source": "caniuse / MDN" },
+    { "claim": "MDN marks the feature 'Limited availability' — not yet Baseline.", "source": "MDN", "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_anchor_positioning/Using" }
+  ]
+}
