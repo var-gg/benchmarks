@@ -1,0 +1,44 @@
+{
+  "run_id": "2026-06-20-uv-audit-supply-chain",
+  "post_slug": "uv-audit-supply-chain",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/uv-audit-supply-chain",
+    "en": "https://var.gg/en/blog/uv-audit-supply-chain"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-20T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This run was executed on 2026-06-20; its raw artifacts were discarded per the finite-disk policy. run.sh + fixture/ are reconstructed from the run's recorded methodology so a third party can reproduce the method. results.json holds the numbers measured on 2026-06-20 — re-running today will drift (see below).",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "python": "CPython 3.12.13 (uv-managed interpreter)",
+    "note": "Timing is machine- and network-dependent; the ratio (uv audit vs pip-audit) is the portable signal, not absolute seconds."
+  },
+
+  "subject": {
+    "name": "uv",
+    "version": "0.11.23",
+    "install": "GitHub release v0.11.23 (standalone zip), invoked as a separate binary (global uv left untouched)",
+    "note": "The 0.11.23 build is required for `uv audit --output-format sarif`; the then-global 0.11.14 lacked it."
+  },
+  "baseline": {
+    "name": "pip-audit",
+    "install": "uvx --from pip-audit (ephemeral, via uv cache)",
+    "invocation": "pip-audit -r requirements.txt --vulnerability-service osv"
+  },
+
+  "data_source": {
+    "name": "OSV",
+    "live": true,
+    "drift_warning": "Both tools query the live OSV database. Vulnerability COUNTS in results.json are as-of 2026-06-20 and will change as OSV adds/updates advisories. The fixture, commands, and speed ratio remain reproducible; exact counts are a point-in-time snapshot."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "Downloaded uv binary + fixture venv were deleted after the run. No hashes were captured at the time (this predates the benchmarks repo). Reconstructed harness is committed instead; that is stated plainly rather than fabricating hashes."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-06-20",
+  "note": "Numbers are as-of 2026-06-20 against the live OSV database. Counts drift over time; the speed ratio and result-parity finding are the durable claims. n is small (self-reported timing, warm median of a handful of runs) — this is a quick A/B, not a rigorous distribution.",
+
+  "metrics": [
+    {
+      "id": "audit_speed",
+      "label": "Audit the same lockfile (warm, same OSV source)",
+      "unit": "s",
+      "subject":  { "tool": "uv audit (text)", "cold": 2.21, "warm_median": 0.82, "warm_samples": [0.79, 0.79, 0.83, 0.84] },
+      "baseline": { "tool": "pip-audit -r requirements.txt --vulnerability-service osv", "cold": 22.7, "warm_median": 16.1, "warm_samples": [16.17, 16.13], "cold_note": "cold includes uvx installing pip-audit's 29 packages" },
+      "ratio": 19.6,
+      "ratio_desc": "uv audit ~0.8s vs pip-audit ~16s warm ≈ 20x faster (both hit OSV over the network, both tool-cached)"
+    }
+  ],
+
+  "findings": [
+    { "id": "result_parity", "claim": "Both tools find the SAME vulnerabilities.", "detail": "Identical vuln id set (primary+alias) = 79, symmetric difference 0. Same type split: PYSEC 18 / CVE 30 / GHSA 30 / SNYK 1. Same 6 vulnerable packages: flask, idna, jinja2, pyyaml, requests, urllib3. So uv audit's value is NOT coverage — it is (1) ~20x speed, (2) native SARIF/JSON output, (3) integration with the lockfile/resolution." },
+    { "id": "fixture_detection", "claim": "48 known vulnerabilities across 13 packages in the fixture.", "detail": "`Found 48 known vulnerabilities and no adverse project statuses in 13 packages`. 6 packages vulnerable. adverse project statuses (yank/deprecated) are a separate axis, 0 here." },
+    { "id": "exit_code", "claim": "Non-zero exit on findings — CI-ready.", "detail": "Vulnerabilities found -> exit 1. Clean project (deps=certifi only) -> exit 0." },
+    { "id": "sarif", "claim": "Native SARIF 2.1.0 output for CI code-scanning.", "detail": "`--output-format sarif` -> SARIF 2.1.0, runs[0].tool.driver.name=uv version=0.11.23, rules 48 / results 48. Added in 0.11.2x; absent from the older global 0.11.14." },
+    { "id": "suppression", "claim": "--ignore matches by alias, suppressing linked advisory records.", "detail": "`--ignore GHSA-562c-5r94-xh97` -> summary 48 -> 46. Also `--ignore-until-fixed` (only while no fix exists)." },
+    { "id": "audit_is_preview", "claim": "`uv audit` is a preview feature.", "detail": "Emits `warning: 'uv audit' is experimental...`. The `--preview-features audit-command` flag only silences the warning; the feature works by default." }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "malware_true_positive", "note": "uv's malware check (a SEPARATE feature on `uv sync`, NOT on `uv audit`) was confirmed to activate and gate installs (UV_MALWARE_CHECK=1, message path verified), but a real malicious package was NOT installed to force a true-positive — deliberately, for safety. Gate behavior verified; positive detection not reproduced." }
+  ]
+}
