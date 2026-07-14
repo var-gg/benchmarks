@@ -1,0 +1,7 @@
+# Compiled output must never be committed — run.sh compiles into a temp dir,
+# but ignore these too so an in-place `mix compile` can't leak artifacts.
+/_build/
+/cover/
+/deps/
+*.beam
+erl_crash.dump

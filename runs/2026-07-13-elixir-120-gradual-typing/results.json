@@ -1,0 +1,111 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-13",
+  "note": "Qualitative capability matrix + exit codes, not an n=30 distribution. Elixir's compiler type output is deterministic for a pinned version (1.20.2 here), so these reproduce verbatim rather than drift. Every 'compiler_output' string is the type message recorded firsthand. No @spec and no type annotations were used anywhere, so each warning is produced by inference alone.",
+
+  "subject": "Elixir 1.20.2 set-theoretic (gradual) type checker — see manifest.json for full environment.",
+
+  "support_matrix": [
+    {
+      "id": "disjoint_map_fetch",
+      "file": "fixture/src/bug_disjoint.ex",
+      "case": "disjoint type -> Map.fetch!",
+      "expectation": "warn",
+      "observed": "warn",
+      "compiler_output": "given `dynamic(binary() or integer())`, expected `map()`",
+      "mechanism": "The if/else makes value_or_error an integer-or-binary; Map.fetch!/2 wants a map, so the two are disjoint and the checker flags it — no annotation needed."
+    },
+    {
+      "id": "missing_map_key",
+      "file": "fixture/src/bug_missing_key.ex",
+      "case": "missing required map key",
+      "expectation": "warn",
+      "observed": "warn",
+      "compiler_output": "given `empty_map()`, expected `%{..., name: term()}`",
+      "mechanism": "User.name/1 does Map.fetch!(map, :name); CallsUser passes %{}, so the required :name key is provably absent."
+    },
+    {
+      "id": "narrowing_ok",
+      "file": "fixture/src/narrow_ok.ex",
+      "case": "correct narrowing (data.a + data.b)",
+      "expectation": "quiet",
+      "observed": "quiet",
+      "compiler_output": "(no warning)",
+      "mechanism": "data.a and data.b narrow data to a map with numeric fields, then adds them — internally consistent, so the checker stays quiet. This is a false-positive it correctly avoids."
+    },
+    {
+      "id": "narrowing_misuse",
+      "file": "fixture/src/narrow_bug.ex",
+      "case": "narrowing misuse (data.a + data)",
+      "expectation": "warn",
+      "observed": "warn",
+      "compiler_output": "`data` narrowed to `%{..., a: float() or integer()}`, then used as a number",
+      "mechanism": "data.a forces data to be a map with a numeric :a field; the same expression then adds the whole map (data) as if it were a number — a contradiction the checker catches."
+    },
+    {
+      "id": "dead_clause",
+      "file": "fixture/src/dead_clause.ex",
+      "case": "dead / unreachable clause",
+      "expectation": "warn",
+      "observed": "warn",
+      "compiler_output": "2 warnings: an 'always matches' on is_integer(x) and a 'never matches' on is_binary(x)",
+      "mechanism": "classify/1 has an is_integer(x) guard, so inside the cond is_integer(x) is always true and is_binary(x) can never be true — the checker flags both the redundant and the unreachable clause."
+    },
+    {
+      "id": "gradual_escape",
+      "file": "fixture/src/gradual_escape.ex",
+      "case": "fully dynamic passthrough",
+      "expectation": "quiet",
+      "observed": "quiet",
+      "compiler_output": "(no warning)",
+      "mechanism": "passthrough/1 does Map.fetch!(x, :any_key) on an unconstrained x. With no guard or prior field access there is no narrowing information, so the value stays fully dynamic() and escapes the checker. This is the honest limit — see caveats."
+    }
+  ],
+
+  "exit_code_semantics": {
+    "claim": "Type findings are WARNINGS, not errors, by default — only `mix compile --warnings-as-errors` turns them into a build failure. This is the honest nuance: the checker catching a bug does not, on its own, stop a build or a deploy.",
+    "cases": [
+      {
+        "command": "elixirc --warnings-as-errors -o out src/unused.ex",
+        "exit": 0,
+        "note": "--warnings-as-errors is a *mix* concept; elixirc ignores it. Even a plain unused-variable warning does not flip elixirc's exit code."
+      },
+      {
+        "command": "mix compile",
+        "exit": 0,
+        "note": "The type warning is printed, but a plain compile does not fail the build."
+      },
+      {
+        "command": "mix compile --warnings-as-errors",
+        "exit": 1,
+        "note": "The one incantation of the three that makes type warnings bite — this is what a CI job must run for the checker to gate a merge."
+      }
+    ]
+  },
+
+  "caveats": [
+    {
+      "id": "warnings_not_errors",
+      "note": "By default these findings are warnings, not errors. They do not fail a build unless you opt in via `mix compile --warnings-as-errors` (see exit_code_semantics). The checker informs; it does not enforce unless configured to."
+    },
+    {
+      "id": "absence_is_not_proof",
+      "note": "No inference signal means no warning. The fully-dynamic gradual_escape case stays quiet not because it is correct but because the checker had nothing to narrow. Absence of a warning is NOT proof of correctness."
+    },
+    {
+      "id": "inference_only_no_annotations",
+      "note": "No @spec and no type annotations were used in any fixture. Every warning above came from inference alone. Adding @spec would give the checker more to work with; that stronger-signal path was not exercised here."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    {
+      "id": "large_codebase_compile_time",
+      "note": "Compile-time cost of the type checker on a large, real codebase was NOT measured. These are tiny single-module fixtures; they say nothing about how much the analysis adds to a full-project `mix compile`."
+    },
+    {
+      "id": "cross_version_sweep",
+      "note": "Only Elixir 1.20.2 was exercised. The checker has been expanding release over release, so earlier versions would produce a different (generally smaller) set of these warnings. No version sweep was run."
+    }
+  ]
+}

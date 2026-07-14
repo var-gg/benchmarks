@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-07-13-elixir-120-gradual-typing",
+  "post_slug": "elixir-120-gradual-typing",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/elixir-120-gradual-typing"
+  },
+  "post_note": "The post is Korean-only; there is no English post, so no /en/ link exists.",
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-13T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This run was executed on 2026-07-13. Its raw artifacts — the per-module compile logs and the .beam output — were discarded per the finite-disk policy, so run.sh + fixture/ (the 7 .ex demo modules and a minimal mix project) are committed to reconstruct the METHOD. Unlike the advisory-database runs in this repo, the compiler's type output is deterministic for a pinned Elixir: re-running on Elixir 1.20.x reproduces the same warnings verbatim, so results.json is a qualitative capability matrix + exit codes, not a drifting snapshot. No artifact hashes were captured at run time, so none are invented here.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 (win32)",
+    "elixir": "1.20.2 (compiled with Erlang/OTP 27)",
+    "runtime": "Erlang/OTP 29 [erts-17.0.3] [jit]",
+    "install": "scoop (scoop install erlang elixir)",
+    "note": "Type checking is a compile-time analysis and is OS-independent; the warnings reproduce on any platform running Elixir 1.20.x. The pinned Elixir version is the load-bearing variable here, not the OS."
+  },
+
+  "subject": {
+    "name": "Elixir set-theoretic (gradual) type checker",
+    "version": "1.20.2",
+    "install": "scoop install erlang elixir (Windows 11)",
+    "note": "Pin 1.20.x in the post. Elixir's inference-based type checker has expanded release over release; the exact warnings captured here are the 1.20 behaviour and are less complete (or absent) on earlier versions."
+  },
+
+  "method": {
+    "modules": "each fixture/src/<f>.ex was compiled standalone with `elixirc -o <tmpdir> src/<f>.ex`, and the compiler's type output was captured verbatim.",
+    "annotations": "none — no @spec and no type annotations anywhere. Every warning is produced by inference alone, which is the point being demonstrated.",
+    "exit_codes": "the build-failure semantics were checked three ways: `elixirc --warnings-as-errors` on an unused-variable control, and — via the minimal fixture/typedemo mix project — `mix compile` and `mix compile --warnings-as-errors`."
+  },
+
+  "determinism": {
+    "live_data_source": false,
+    "note": "There is no external or live data source. The compiler's type output is deterministic for a pinned Elixir, so nothing here drifts the way advisory-DB counts do in this repo's other runs. Reproduction fidelity depends only on the Elixir version being 1.20.x."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "The per-module compile logs and the .beam output were deleted after the run; run.sh regenerates them into a temp dir on demand. No hashes were captured at the time (this predates the run being packaged here), so none are invented — the committed fixture + harness are the reproduction, not fabricated digests."
+  }
+}
