@@ -1,0 +1,54 @@
+{
+  "kind": "capability_verification",
+  "subject": "OpenTelemetry Weaver 0.24.2",
+  "note": "Verifies CLI behavior and exit codes on fixed registry fixtures, not timing. No statistical distribution applies: for a pinned weaver version each command's exit code and diagnostic are deterministic. source_of_truth = evidence.txt (exit-code matrix) + diff.json.",
+
+  "exp_A_builtin_check": {
+    "claim": "`weaver registry check` gates schema + resolution correctness, but NOT naming style.",
+    "cases": [
+      { "id": "clean", "fixture": "reg/", "expect": "exit 0", "measured": "exit 0", "note": "commerce.order.id (string) + commerce.order.total_amount (double), both with brief." },
+      { "id": "camelCase_name", "fixture": "reg_b1/", "change": "total_amount -> totalAmount", "expect": "PASSES built-in check", "measured": "exit 0", "note": "KEY finding: naming style is NOT caught by the built-in check." },
+      { "id": "missing_brief", "fixture": "reg_b2/", "change": "drop brief field", "expect": "exit 1", "measured": "exit 1", "diagnostic": "'not deprecated and does not contain a brief field'." },
+      { "id": "invalid_type", "fixture": "reg_b3/", "change": "type: money", "expect": "exit 1", "measured": "exit 1", "diagnostic": "type must be one of boolean/int/double/string/any/string[]/int[]/double[]/boolean[] (or template[...])." }
+    ]
+  },
+
+  "exp_A2_rego_policy": {
+    "claim": "A layered Rego policy (after_resolution) turns naming into an enforced contract that the built-in check ignores.",
+    "policy": "policies/naming.rego — deny if attr.name matches [A-Z]",
+    "cases": [
+      { "id": "clean_plus_policy", "fixture": "reg/", "expect": "exit 0", "measured": "exit 0" },
+      { "id": "camelCase_plus_policy", "fixture": "reg_b1/", "expect": "exit 1", "measured": "exit 1", "violation": "attr_name_not_snake_case, group=registry.commerce.order, attr=commerce.order.totalAmount" }
+    ],
+    "takeaway": "The SAME registry passes or fails depending only on whether the policy is layered on. 'What is a contract' is a policy choice, not a built-in default."
+  },
+
+  "exp_B_diff": {
+    "claim": "`weaver registry diff` surfaces structural breaking changes as add/remove, but does NOT flag every field-level change; it is informational (exit 0), not a gate.",
+    "baseline": "reg/ (commerce.order.id string, total_amount double)",
+    "head": "reg2/ (id renamed to identifier, total_amount double -> int)",
+    "measured_registry_attributes": [
+      { "type": "added", "name": "commerce.order.identifier" },
+      { "type": "removed", "name": "commerce.order.id" }
+    ],
+    "exit_code": 0,
+    "honest_limits": [
+      "A rename shows up as remove + add — i.e. downstream consumers (dashboards, alerts) keyed on commerce.order.id silently break.",
+      "The in-place total_amount double -> int type change is NOT surfaced in the diff summary. Field-level type/stability enforcement lives in the comparison_after_resolution policy layer, not in the default diff.",
+      "diff exits 0 (informational). It does not fail CI by itself."
+    ]
+  },
+
+  "exp_C_generate": {
+    "claim": "One registry source drives generated artifacts (docs/code/SDK) via `weaver registry generate` + Jinja2 templates.",
+    "command": "weaver registry generate -r ./reg -t ./templates markdown ./gen_out",
+    "template": "templates/markdown/{weaver.yaml (filter: semconv_grouped_attributes, application_mode: single), attributes.md.j2}",
+    "measured": "exit 0, wrote gen_out/attributes.md (see committed sample).",
+    "note": "`weaver registry resolve` is marked deprecated in help and prints a deprecation warning at runtime, but STILL resolves and exits 0 (it does not halt). Use generate/package going forward."
+  },
+
+  "cited_not_measured": [
+    { "claim": "weaver 0.24.2 is the latest (2026-06-23); 0.24.0 added requirement_level v2, dependency_resolution.exclude, one_of/all_of, authenticated HTTP, weaver-live-check GH Action.", "source": "GitHub releases", "url": "https://github.com/open-telemetry/weaver/releases" },
+    { "claim": "Registry dependency chains a->b->c up to depth 10 are supported.", "source": "release notes (not exercised in this run)" }
+  ]
+}

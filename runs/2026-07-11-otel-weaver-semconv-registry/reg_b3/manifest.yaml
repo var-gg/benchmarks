@@ -1,0 +1,3 @@
+name: commerce
+description: Minimal commerce semantic-convention registry (var.gg firsthand demo)
+schema_url: https://var.gg/schemas/commerce/1.0.0

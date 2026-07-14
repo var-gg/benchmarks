@@ -1,0 +1,24 @@
+{
+  "head": {
+    "semconv_version": "1.0.0"
+  },
+  "baseline": {
+    "semconv_version": "1.0.0"
+  },
+  "changes": {
+    "metrics": [],
+    "spans": [],
+    "events": [],
+    "registry_attributes": [
+      {
+        "type": "added",
+        "name": "commerce.order.identifier"
+      },
+      {
+        "type": "removed",
+        "name": "commerce.order.id"
+      }
+    ],
+    "entities": []
+  }
+}

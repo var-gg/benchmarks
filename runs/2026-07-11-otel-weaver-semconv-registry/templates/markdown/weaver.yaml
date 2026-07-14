@@ -1,0 +1,4 @@
+templates:
+  - template: attributes.md.j2
+    filter: semconv_grouped_attributes
+    application_mode: single

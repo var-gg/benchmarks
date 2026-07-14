@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-07-11-otel-weaver-semconv-registry",
+  "post_slug": "otel-weaver-semconv-registry",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/otel-weaver-semconv-registry"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-15T06:44:00Z",
+  "operator": "curioustore",
+  "backfilled": false,
+  "reconstruction_note": "The blog post was published 2026-07-11; its original working fixtures (tmp/firsthand-*) were discarded per the finite-disk policy. The fixtures here were reconstructed from the post's recorded firsthand log and then RE-EXECUTED fresh on 2026-07-15 against the same pinned weaver 0.24.2. Because check/diff/generate are deterministic for a pinned version (no live DB, no timing), the re-run reproduces the original results exactly. evidence.txt is that fresh run's captured output — not a copied number.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64",
+    "runner": "weaver CLI, native",
+    "note": "This verifies CLI behavior + exit codes on a fixed registry, not timing. CPU/GPU/RAM do not affect the result and are intentionally omitted. Exit codes are deterministic for weaver 0.24.2."
+  },
+
+  "subject": {
+    "name": "weaver",
+    "full_name": "OpenTelemetry Weaver",
+    "version": "0.24.2",
+    "release_date": "2026-06-23",
+    "install": "GitHub release v0.24.2 (weaver-x86_64-pc-windows-msvc.zip). run.sh downloads the matching per-OS asset.",
+    "note": "Pinned. `latest` is intentionally NOT used: weaver's diagnostics and defaults evolve across releases, so an unpinned re-run would not be evidence of THIS behavior."
+  },
+
+  "cited_not_measured": {
+    "registry_dependency_depth": "The a->b->c dependency-chain depth-10 support is cited from release notes, not exercised here.",
+    "live_check_github_action": "weaver-live-check GH Action (0.24.0) is cited, not run."
+  },
+
+  "discrepancy_flag": {
+    "resolve_command": "The published post says `weaver registry resolve` is deprecated and '안내하며 멈춘다' (guides you to generate/package and STOPS). Measured on 0.24.2: resolve prints the deprecation warning to stderr but THEN COMPLETES the resolution and exits 0 (see evidence.txt: resolve_deprecated_but_runs exit=0). It warns; it does not halt. Recorded here accurately; the post phrasing overstates it. Flagged for optional human correction of the post body."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "no large artifacts; committed evidence is small and deterministic",
+    "note": "The weaver binary, the downloaded zip, gen_out/, and .weaver/ are reproduction byproducts and are NOT committed. Committed evidence: the fixtures (reg*/, policies/, templates/), evidence.txt (exit-code matrix), diff.json (attribute-change output), and gen_out/attributes.md (generate output sample)."
+  }
+}

@@ -1,0 +1,12 @@
+# evidence.txt — weaver 0.24.2 firsthand run
+# captured 2026-07-14T21:44:55Z · weaver 0.24.2
+# each line: <case> exit=<code> (expected)
+A_clean_check exit=0 (0)
+B1_camelCase_builtin exit=0 (0=builtin_ignores_naming)
+B2_missing_brief exit=1 (1)
+B3_invalid_type_money exit=1 (1)
+A2_clean_plus_policy exit=0 (0)
+A2_camelCase_plus_policy exit=1 (1=policy_catches_naming)
+B_diff exit=0 (0=informational)
+C_generate exit=0 (0)
+resolve_deprecated_but_runs exit=0 (0=warns_then_resolves)

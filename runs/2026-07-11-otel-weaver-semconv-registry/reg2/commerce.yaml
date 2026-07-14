@@ -1,0 +1,15 @@
+groups:
+  - id: registry.commerce.order
+    type: attribute_group
+    brief: "Attributes describing a commerce order."
+    attributes:
+      - id: commerce.order.identifier
+        type: string
+        stability: stable
+        brief: "The unique identifier of the order."
+        examples: ["order-8f3a"]
+      - id: commerce.order.total_amount
+        type: int
+        stability: stable
+        brief: "Total monetary amount of the order (minor units)."
+        examples: [4250]

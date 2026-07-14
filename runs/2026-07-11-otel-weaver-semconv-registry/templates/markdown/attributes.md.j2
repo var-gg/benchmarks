@@ -1,0 +1,7 @@
+# Commerce registry — attributes
+{% for group in ctx %}
+## {{ group.id }}
+{% for attr in group.attributes %}
+- `{{ attr.name }}` ({{ attr.type }}) — {{ attr.brief | trim }}
+{%- endfor %}
+{% endfor %}
