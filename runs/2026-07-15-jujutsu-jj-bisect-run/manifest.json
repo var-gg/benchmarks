@@ -1,0 +1,50 @@
+{
+  "run_id": "2026-07-15-jujutsu-jj-bisect-run",
+  "post_slug": "jujutsu-jj-bisect-run",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/jujutsu-jj-bisect-run"
+  },
+  "post_note": "The post is Korean-only; there is no English post, so no /en/ link exists.",
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-15T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": false,
+  "packaging_note": "Executed 2026-07-15, packaged 2026-07-16 in the same firsthand session. The original demo repo (tmp/firsthand-jj/) and the downloaded jj.exe were removed per the finite-disk policy, but the authored harness (harness/setup.sh) and the recorded run output (harness/bisect-output.txt) were preserved, so this is the real harness, not a reconstruction. No fabricated artifact hashes.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 (win32)",
+    "jj": "0.43.0-89f62ede",
+    "jj_install": "prebuilt release zip jj-v0.43.0-x86_64-pc-windows-msvc.zip (2026-07-01 release)",
+    "git": "colocated repo (jj git init --colocate); plain git reads the same commits",
+    "docker": "not used",
+    "note": "MAX_PATH gotcha on Windows: jj index segment filenames are ~128 chars, so the demo repo must live at a SHORT path (tmp/firsthand-jj) or jj hits `os error 3`. The bisect logic itself is OS-independent — the load-bearing variable is the jj version, not the OS."
+  },
+
+  "subject": {
+    "name": "Jujutsu (jj) — Git-compatible VCS with automated bisect",
+    "version": "0.43.0",
+    "created_by": "Martin von Zweigbergk (Google), Rust, uses the git on-disk format",
+    "note": "Pin 0.43.x in the post. `jj bisect run` itself was introduced in 0.33.0 (2025-09), NOT in 0.43 — the post says this plainly and does not sell bisect as brand-new. The genuinely recent surface is `jj file search` (0.41, 2026-05) and the 0.42/0.43 line. jj is still 0.x (pre-1.0)."
+  },
+
+  "method": {
+    "harness": "harness/setup.sh builds a linear 8-commit history in a colocated jj/git repo, planting a single off-by-one bug in mean() (divide by len-1) at the commit `refactor: tweak mean() internals`. The other commits (total/median/variance/docstring/minmax) are unrelated changes. It then runs `jj bisect run --range 'base..@'` with a one-line test and exercises `jj file search`, git colocation, and the operation log.",
+    "test": "python -B -c \"import stats,sys; sys.exit(0 if stats.mean([2.0,4.0,6.0])==4.0 else 1)\"  (good=4.0, bug=6.0)",
+    "annotations": "none — the demo is a plain Python fixture; jj drives the search, nothing is annotated.",
+    "recorded_output": "harness/bisect-output.txt is the verbatim `jj bisect run` transcript from the 2026-07-15 run."
+  },
+
+  "determinism": {
+    "live_data_source": false,
+    "bisect_outcome_deterministic": true,
+    "change_ids_deterministic": false,
+    "note": "Which commit bisect reports as first-bad is deterministic: on a re-run it always narrows the 6 candidates in 3 evaluations to the planted `refactor: tweak mean() internals` commit, because the test is a pure function of the tree. What does NOT reproduce byte-for-byte is the jj change-id prefixes (xuspwrqt, yvvtsrol, ...) and git hashes shown in bisect-output.txt — jj assigns change-ids randomly per repo, so those strings are run-specific labels, not stable identifiers. Reproduction fidelity is about the METHOD and the first-bad description, not the id strings."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "demo repo + jj.exe removed after the run (finite local disk)",
+    "note": "tmp/firsthand-jj/ (the demo repo and jj index) and the downloaded jj.exe were deleted after the run. harness/setup.sh regenerates the whole demo on demand from a pinned jj 0.43.x. No artifact hashes were captured at run time, so none are invented — the committed harness + the recorded transcript are the reproduction."
+  }
+}

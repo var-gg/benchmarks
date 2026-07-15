@@ -1,0 +1,24 @@
+Bisecting: 5 revisions left to test after this (roughly 3 steps)
+Now evaluating: xuspwrqt 2e5a1b9b refactor: tweak mean() internals
+Working copy  (@) now at: ntnulmkp 16e8c03f (empty) (no description set)
+Parent commit (@-)      : xuspwrqt 2e5a1b9b refactor: tweak mean() internals
+Added 0 files, modified 1 files, removed 0 files
+The revision is bad.
+
+Bisecting: 2 revisions left to test after this (roughly 2 steps)
+Now evaluating: yvvtsrol a5e32797 feat: add total()
+Working copy  (@) now at: zrlnulpm d4ac0635 (empty) (no description set)
+Parent commit (@-)      : yvvtsrol a5e32797 feat: add total()
+Added 0 files, modified 1 files, removed 0 files
+The revision is good.
+
+Bisecting: 1 revisions left to test after this (roughly 1 steps)
+Now evaluating: wwkzttrp 9a0dc1ab feat: add median()
+Working copy  (@) now at: zytxpkkt 198b2c9d (empty) (no description set)
+Parent commit (@-)      : wwkzttrp 9a0dc1ab feat: add median()
+Added 0 files, modified 1 files, removed 0 files
+The revision is good.
+
+Search complete. To discard any revisions created during search, run:
+  jj op restore 60d2a978381a
+The first bad revision is: xuspwrqt 2e5a1b9b refactor: tweak mean() internals

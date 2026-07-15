@@ -1,0 +1,93 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-15",
+  "note": "Qualitative capability matrix, not an n=30 distribution. jj's behaviour here is deterministic for a pinned 0.43.x: the bisect outcome and the compiler-of-history search reproduce on a re-run. The one thing that does NOT reproduce byte-for-byte is the change-id / git-hash strings, which jj randomizes per repo — see manifest.determinism. Every 'observed' below is recorded firsthand from the 2026-07-15 run.",
+
+  "subject": "Jujutsu (jj) 0.43.0 — automated bisect + revision-tree search on a git-colocated repo. See manifest.json for the full environment.",
+
+  "support_matrix": [
+    {
+      "id": "bisect_run_finds_planted_bug",
+      "case": "jj bisect run auto-narrows an 8-commit linear history to the commit that planted a mean() off-by-one",
+      "command": "jj bisect run --range 'base..@' -- python -B -c \"import stats,sys; sys.exit(0 if stats.mean([2.0,4.0,6.0])==4.0 else 1)\"",
+      "expectation": "reports the planted commit as first-bad",
+      "observed": "first bad revision = 'refactor: tweak mean() internals' (the planted commit), reached in 3 evaluations of 6 candidates",
+      "evidence": "harness/bisect-output.txt",
+      "mechanism": "bisect binary-searches the range: head (@) is assumed bad, the excluded ancestor (base) good; each step checks out a midpoint, runs the test, and halves the remaining range. The test is a pure function of the tree, so the search is monotone and lands exactly on the commit that changed mean()."
+    },
+    {
+      "id": "bisect_exit_code_protocol",
+      "case": "the test's exit code tells bisect good / bad / skip / abort",
+      "expectation": "documented protocol",
+      "observed": "0 = good, non-zero (except below) = bad, 125 = skip (untestable), 127 = abort. $JJ_BISECT_TARGET carries the commit id under test; --find-good reverses the direction (search for the first GOOD instead of first bad).",
+      "evidence": "harness/setup.sh comments + jj bisect --help (jj 0.43.0)",
+      "mechanism": "the same good/bad/skip contract as `git bisect run`, so any test harness that already exits 0/1 works unchanged."
+    },
+    {
+      "id": "file_search_any_revision",
+      "case": "jj file search finds a pattern in the tree of an arbitrary revision WITHOUT checking it out",
+      "command": "jj file search --pattern variance            (at @)\njj file search --pattern variance -r 'base+2'  (before variance was added)",
+      "expectation": "hit at @, empty at the earlier revision",
+      "observed": "at @ -> stats.py; at base+2 (a revision predating the variance() commit) -> empty result",
+      "evidence": "harness/setup.sh",
+      "mechanism": "unlike `git grep` (working tree / index) or ripgrep (working-tree files), jj searches the stored tree of any named revision directly — no checkout, no stash. This is the differentiator."
+    },
+    {
+      "id": "git_colocation",
+      "case": "a colocated repo lets plain git see the jj commits verbatim",
+      "command": "jj git init --colocate ; ... ; git log --oneline -3",
+      "expectation": "git shows the same commits jj created",
+      "observed": "git log shows the jj commits (e.g. 2e5a1b9 = the xusp bug commit) with no translation step",
+      "evidence": "harness/setup.sh",
+      "mechanism": "jj writes real git objects into a shared .git, so jj sits ON TOP of git rather than replacing it — teammates keep using git, you use jj. This lowers the adoption barrier."
+    },
+    {
+      "id": "operation_log_undo",
+      "case": "the operation log makes a bisect's temporary checkouts fully undoable",
+      "command": "jj op log ; jj op restore <op-id>",
+      "expectation": "each bisection step is a recorded operation that can be rolled back in one command",
+      "observed": "bisect prints, on completion, the exact `jj op restore <id>` to discard every temporary revision it created during the search",
+      "evidence": "harness/bisect-output.txt (final lines) + harness/setup.sh",
+      "mechanism": "every jj state change is an operation; `jj op restore` rewinds the whole repo to a prior operation, so a destructive-looking search is safe to run and trivially reversible."
+    }
+  ],
+
+  "freshness": {
+    "jj_latest": "0.43.0 (2026-07-01)",
+    "bisect_run_introduced": "0.33.0 (2025-09-03) — NOT new in 0.43; the post says so explicitly and does not overstate the hook",
+    "file_search_introduced": "0.41.0 (2026-05-06), early version",
+    "other_recent": "0.42.0 (2026-06-04, mimalloc allocator)",
+    "identity": "created by Martin von Zweigbergk (Google), written in Rust, uses the git on-disk format (real git commits), still 0.x (pre-1.0)",
+    "sourced_from": "GitHub releases + changelog + docs.jj-vcs.dev + `jj --version` / `jj bisect --help`, cross-checked 2026-07-15"
+  },
+
+  "caveats": [
+    {
+      "id": "bisect_assumes_monotonicity",
+      "note": "bisect assumes the bug is monotone — every descendant of the first bad commit is also bad. A bug that appears, disappears, and reappears (non-monotone) breaks that assumption and bisect can land on the wrong commit. The demo history is deliberately monotone."
+    },
+    {
+      "id": "file_search_is_early",
+      "note": "jj file search is an early feature (0.41): its --help states glob matching only unless you ask for regex, no concurrent search, and no in-file match positions — it returns a FILE LIST, not line numbers. Do not expect grep-grade output yet."
+    },
+    {
+      "id": "still_pre_1_0",
+      "note": "jj is still 0.x. Behaviour and flags can change between minor releases; pin the version (0.43.x here) if you depend on exact output."
+    },
+    {
+      "id": "change_ids_not_reproducible",
+      "note": "the change-id prefixes and git hashes in bisect-output.txt are run-specific — jj randomizes change-ids per repo. A re-run finds the same first-bad DESCRIPTION in the same number of steps, but with different id strings. See manifest.determinism."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    {
+      "id": "large_repo_performance",
+      "note": "bisect / file-search performance on a large, real repository was NOT measured. This is an 8-commit toy history; it says nothing about wall-clock cost at scale."
+    },
+    {
+      "id": "cross_platform_sweep",
+      "note": "only Windows 11 was exercised (with the MAX_PATH workaround). The bisect logic is OS-independent, but no macOS/Linux run was captured here."
+    }
+  ]
+}
