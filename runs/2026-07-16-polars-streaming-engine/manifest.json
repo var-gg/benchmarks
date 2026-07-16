@@ -1,0 +1,61 @@
+{
+  "run_id": "2026-07-16-polars-streaming-engine",
+  "post_slug": "polars-streaming-engine",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/polars-streaming-engine"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-16T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": false,
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "python": "CPython 3.11.9 (venv)",
+    "packages": {
+      "polars": "1.42.1",
+      "pandas": "2.3.1",
+      "pyarrow": "17.0.0",
+      "psutil": "6.0.0"
+    },
+    "memory_metric": "psutil peak_wset (true peak working set of the measuring subprocess, Windows). Each engine/op measurement runs in its OWN python subprocess so peaks do not contaminate each other.",
+    "note": "Absolute MB includes CPython + library overhead (~100-150MB floor). The portable signal is the RATIO between engines on the same machine, and the shape of the per-op table — not the absolute MB."
+  },
+
+  "subject": {
+    "name": "Polars new streaming engine",
+    "version": "1.42.1 (PyPI wheel, win_amd64, released 2026-06-30)",
+    "invocation": "LazyFrame.collect(engine=\"streaming\") vs collect(engine=\"in-memory\")",
+    "freshness_note": "The streaming engine is OPT-IN, not the default, as of 1.42.1 — official docs: 'the streaming engine is not the default' / 'will become the default in time'. It has been developed over 1+ year (tracking issue pola-rs/polars#20947); do not read this run as 'just stabilized'."
+  },
+  "baseline": [
+    { "name": "polars in-memory engine", "invocation": "collect(engine=\"in-memory\")" },
+    { "name": "pandas", "version": "2.3.1", "invocation": "pd.read_parquet (full load) + groupby agg" }
+  ],
+
+  "dataset": {
+    "generator": "harness/probe.py gen (deterministic, no RNG: val = (id*2654435761 % 1000003)/1000)",
+    "rows": 30000000,
+    "groups": 2000,
+    "parquet_size_mb": 87.1,
+    "note": "Generated fresh by run.sh via sink_parquet (streaming write); not committed here."
+  },
+
+  "determinism": {
+    "dataset_deterministic": true,
+    "checksums_deterministic": true,
+    "peak_memory_deterministic": false,
+    "note": "The dataset and query checksums reproduce exactly on a pinned Polars. Peak-memory MB varies run-to-run (allocator, thread scheduling) by roughly +/-10%; the cross-engine ratios and the rows-out pattern (reducing vs row-preserving) are the durable claims. Timings are secondary and machine-dependent."
+  },
+
+  "harness_provenance": {
+    "note": "harness/probe.py is the file executed on 2026-07-16, copied verbatim from the session workspace, with ONE edit: the module docstring's incorrect '(stabilized in 1.41.0)' claim was corrected (see docstring). The per-column float-diff breakdown in results.json (experiment B detail) was computed ad-hoc in the same session on the same outputs; probe.py's `equal` mode reproduces the headline equals=False."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "venv + 87MB parquet deleted after the run (finite local disk)",
+    "note": "The harness regenerates both deterministically."
+  }
+}

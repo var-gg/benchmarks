@@ -1,0 +1,46 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-16",
+  "note": "Single run per cell (n=1, own subprocess each), peak working set via psutil peak_wset on Windows. Memory is the claim; timings are secondary. Absolute MB will differ on your machine — the cross-engine ratios and the reducing-vs-row-preserving pattern are the durable findings.",
+
+  "metrics": [
+    {
+      "id": "groupby_agg_peak_memory",
+      "label": "Experiment A — group-by aggregate, 30M rows -> 2,000 groups (scan_parquet.group_by.agg(len,sum,mean,max).sort)",
+      "unit": "MB peak working set",
+      "cells": [
+        { "engine": "polars streaming",  "peak_mb": 366,  "seconds": 0.05, "checksum_val_sum": 15000032831.613 },
+        { "engine": "polars in-memory",  "peak_mb": 1035, "seconds": 0.18, "checksum_val_sum": 15000032831.613 },
+        { "engine": "pandas (full load)", "peak_mb": 2466, "seconds": 1.03, "checksum_val_sum": 15000032831.613 }
+      ],
+      "ratio_desc": "streaming uses 2.8x less peak memory than polars in-memory and 6.7x less than pandas on the same reducing query; checksums identical across all three."
+    },
+    {
+      "id": "per_op_peak_memory",
+      "label": "Experiment C — same engine=\"streaming\" flag, different ops (the headline honest limit)",
+      "unit": "MB peak working set",
+      "cells": [
+        { "op": "group_by_sum",           "rows_out": 2000,     "streaming_mb": 366,  "in_memory_mb": 1035 },
+        { "op": "equi_join(large x small)+agg", "rows_out": 2000, "streaming_mb": 667,  "in_memory_mb": 2031 },
+        { "op": "cum_sum (1 float col out)", "rows_out": 30000000, "streaming_mb": 383,  "in_memory_mb": null },
+        { "op": "window_over .over(key)",  "rows_out": 30000000, "streaming_mb": 1050, "in_memory_mb": 931 },
+        { "op": "full_sort",               "rows_out": 30000000, "streaming_mb": 2723, "in_memory_mb": 2691 }
+      ],
+      "pattern": "Row-REDUCING queries (30M -> 2k): streaming bounds memory, 2.8-3x less. Row-PRESERVING queries (30M -> 30M): no streaming advantage — window_over is slightly WORSE than in-memory (1050 vs 931MB) and full_sort is a wash (~2.7GB both). Peak memory is governed by rows-out, not by the engine flag."
+    }
+  ],
+
+  "findings": [
+    { "id": "streaming_bounds_reducing_queries", "claim": "engine=\"streaming\" genuinely bounds memory for reducing queries on larger-than-RAM-style scans.", "detail": "group-by over 30M rows peaks at 366MB streaming vs 1035MB in-memory vs 2466MB pandas, identical checksum. Join+agg: 667 vs 2031MB." },
+    { "id": "streaming_not_a_memory_cap", "claim": "engine=\"streaming\" is NOT a magic memory cap — row-preserving ops gain nothing.", "detail": "Same flag, window_over peaks at 1050MB (in-memory: 931MB) and full_sort at 2723MB (in-memory: 2691MB). Official docs state some ops are inherently non-streaming or not yet implemented streaming and FALL BACK to the in-memory engine — consistent with these measurements." },
+    { "id": "numerically_equal_not_bit_identical", "claim": "streaming and in-memory results are numerically equal but not bit-identical.", "detail": "DataFrame.equals() == False. Per column: key/n/val_max bit-exact; val_sum max_abs_diff 1.024e-08 (1392/2000 groups differ); val_mean max_abs_diff 6.821e-13. All within rel-tol 1e-9. Cause: float addition is non-associative and streaming combines chunk partial sums in a different order. Regression tests comparing engines need approximate equality (check_exact=False)." },
+    { "id": "opt_in_not_default", "claim": "The new streaming engine is opt-in, not the default, as of 1.42.1.", "detail": "collect(engine=\"streaming\") or pl.Config.set_engine_affinity(\"streaming\"). Official docs: 'not the default' / 'will become the default in time'. Development tracked in pola-rs/polars#20947 since ~1.31." }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "rank_over", "note": "probe.py's OPS includes rank_over; its measurement was not retained in the session record, so it is not reported here. Re-run `probe.py measop rank_over streaming` to measure it." },
+    { "id": "internal_fallback_instrumentation", "note": "Which specific ops internally fell back to the in-memory engine was NOT instrumented (the fallback is silent). The fallback explanation comes from official docs; the measurements are peak-memory observations only." },
+    { "id": "true_out_of_core", "note": "The 87MB parquet fits in RAM. This run demonstrates memory BOUNDING behavior per engine, not a genuinely larger-than-RAM out-of-core workload." },
+    { "id": "cross_platform", "note": "Windows only. peak_wset is Windows-specific; Linux/macOS would need a peak-RSS equivalent (e.g. ru_maxrss)." }
+  ]
+}
