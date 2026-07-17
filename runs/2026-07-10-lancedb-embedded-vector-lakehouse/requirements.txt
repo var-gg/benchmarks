@@ -1,0 +1,6 @@
+# Pinned so the subject under test is reproducible.
+# 0.34.0 is the version the essay was written against (2026-07-09).
+lancedb==0.34.0
+pyarrow==24.0.0
+numpy
+pandas

@@ -1,0 +1,53 @@
+{
+  "run_id": "2026-07-10-lancedb-embedded-vector-lakehouse",
+  "post_slug": "lancedb-embedded-vector-lakehouse",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/lancedb-embedded-vector-lakehouse"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-09T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The essay was written 2026-07-09 against lancedb 0.34.0; the original tmp harness (tmp/firsthand-lancedb-embedded-vector-lakehouse/) was discarded per the finite-disk policy. probe.py here is reconstructed from the recorded methodology in the workspace firsthand-benchmark.md so a third party can reproduce the method. The reconstructed harness was re-run on 2026-07-18 against the same pinned 0.34.0 — see reproduction below and results.json.reproduction_2026_07_18.",
+
+  "reproduction": {
+    "reran_on": "2026-07-18",
+    "lancedb": "0.34.0 (same pin)",
+    "exact_match": ["exp_b_exact_topk", "exp_d_versioning", "exp_e recall_default (0.7)"],
+    "drift": {
+      "exp_e_tuned_recall": "0.9 on re-run vs 1.0 in the authoring note — PQ codebook init not fully pinned; tuned recall lands in a 0.9–1.0 band.",
+      "exp_f_bm25": "'fox' top-2 ids reproduce ([3,0]); absolute BM25 scores drift and the FTS corpus text was not recorded, so it is reconstructed, not bit-exact."
+    }
+  },
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker/GPU)",
+    "python": "CPython 3.11.9, isolated venv",
+    "note": "Embedded library over local files only — no server, no network, no LLM. Hardware is irrelevant to the behavioral/recall results; timing was not measured."
+  },
+
+  "subject": {
+    "name": "lancedb",
+    "version": "0.34.0",
+    "install": "pip install lancedb==0.34.0 pyarrow==24.0.0",
+    "note": "0.34 deprecated create_fts_index and metric=/num_partitions= kwargs in favor of create_index('col', config=IvfPq(...)) / create_index(config=FTS()). The harness uses the 0.34 API."
+  },
+  "baseline": {
+    "name": "exact brute-force search (numpy)",
+    "note": "EXP E compares the IVF_PQ approximate index against an exact L2 brute-force ground truth computed in numpy. No external baseline tool executed."
+  },
+
+  "tool": {
+    "name": "lancedb",
+    "language": "python",
+    "version": "0.34.0",
+    "python": "3.11.9"
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none large — evidence is small and committed",
+    "note": "The 2026-07-09 tmp build dir (venv + on-disk .lance tables) was discarded post-publish per the disk policy. The committed evidence — probe.py (harness) + probe-result.json (deterministic re-run output) — is small and regenerable via run.sh."
+  }
+}

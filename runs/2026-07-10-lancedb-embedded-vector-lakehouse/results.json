@@ -1,0 +1,59 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies embedded-library behaviors of LanceDB 0.34.0 over local files — no server, no Docker, no GPU, no network. EXP B/D are bit-deterministic. EXP E is an approximate-index recall measurement (seeded). EXP F is BM25 ranking whose scores are tantivy-build-dependent. Values below are from the firsthand notes at authoring (2026-07-09); the `reproduction_2026_07_18` block records a re-run of the reconstructed harness on the same pinned 0.34.0.",
+
+  "subject": "lancedb 0.34.0 (Python), pyarrow 24.0.0",
+
+  "behaviors_verified": [
+    {
+      "id": "embedded_no_server",
+      "claim": "lancedb.connect(dir) returns an in-process handle (LanceDBConnection) — no daemon, data lives as on-disk .lance files.",
+      "evidence": "probe-result.json.connection_type == 'LanceDBConnection'; firsthand-benchmark EXP A/C on-disk layout"
+    },
+    {
+      "id": "exact_topk_squared_l2",
+      "claim": "Exact top-k over fixed 2D vectors is deterministic and `_distance` is *squared* L2 (0.02 = 0.01+0.01, not 0.14) — a common gotcha.",
+      "evidence": "probe-result.json.exp_b_exact_topk",
+      "value": { "order": [0, 2, 1, 3], "pairs_id_squared_l2": [[0, 0.0], [2, 0.02], [1, 2.0], [3, 4.0]], "deterministic": true }
+    },
+    {
+      "id": "versioning_time_travel",
+      "claim": "Every write bumps a version; you can checkout an old version (4 rows) and return to latest (5 rows).",
+      "evidence": "probe-result.json.exp_d_versioning",
+      "value": { "n_versions": 2, "rows_at_v1": 4, "rows_latest": 5 }
+    },
+    {
+      "id": "ann_recall_tradeoff",
+      "claim": "IVF_PQ approximate index trades recall for speed; default nprobes gives recall@10 ~0.7, and nprobes/refine_factor tuning recovers it toward 1.0.",
+      "evidence": "probe-result.json.exp_e_ann_vs_exact",
+      "value": { "recall_default": 0.7, "recall_tuned": "0.9–1.0 (see reproduction note)" }
+    },
+    {
+      "id": "fts_bm25_no_embeddings",
+      "claim": "Full-text (BM25) search works with zero embeddings via create_index(config=FTS()); create_fts_index was deprecated in 0.25.0.",
+      "evidence": "probe-result.json.exp_f_fts",
+      "value": { "fox_top2_ids": [3, 0] }
+    }
+  ],
+
+  "firsthand_notes_2026_07_09": {
+    "exp_b": { "pairs": [[0, 0.0], [2, 0.02], [1, 2.0], [3, 4.0]], "order": [0, 2, 1, 3] },
+    "exp_d": { "n_versions": 2, "rows_at_v1": 4, "rows_latest": 5 },
+    "exp_e": { "recall_default_nprobes": 0.7, "recall_nprobes64_refine10": 1.0, "n": 50000, "d": 32, "seed": 42 },
+    "exp_f": { "fox": [[3, 0.7199], [0, 0.6236]], "lazy": [1, 0] }
+  },
+
+  "reproduction_2026_07_18": {
+    "harness": "reconstructed probe.py, re-run on the same pinned lancedb==0.34.0",
+    "exp_b": "EXACT match (order [0,2,1,3], squared-L2 0.02, deterministic 3x)",
+    "exp_d": "EXACT match (v1=4 rows, latest=5 rows, 2 versions)",
+    "exp_e": "recall_default 0.7 EXACT; tuned nprobes64/refine10 = 0.9 on re-run vs 1.0 in the authoring note. PQ codebook (k-means) init is not fully pinned, so the tuned recall lands in the 0.9–1.0 band — the *direction* (tuning recovers most of the lost recall) reproduces, the exact last decimal does not.",
+    "exp_f": "fox top-2 ids [3,0] match; BM25 scores drift (0.7549/0.6407 vs 0.7199/0.6236) and 'lazy' returns [1] not [1,0]. The FTS corpus text was NOT recorded in the 2026-07-09 notes, so probe.py reconstructs a plausible corpus — ids for 'fox' reproduce, absolute BM25 scores are tantivy-build- and corpus-dependent and are not claimed as bit-exact."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Latest stable at authoring: Python 0.34.0 / Node·Rust 0.31.0.", "source": "PyPI / GitHub releases (2026-07 early)" },
+    { "claim": "Official positioning shifted from 'vector database' to 'OSS embedded retrieval library for multimodal AI' / 'multimodal lakehouse'.", "source": "lancedb.com / project README" },
+    { "claim": "Lance is an open columnar lakehouse format; LanceDB is the embedded retrieval library on top. OSS (local embedded) and Cloud/Enterprise (managed, petabyte-scale) share the table format.", "source": "LanceDB docs" }
+  ]
+}

@@ -23,6 +23,7 @@ most public benchmarks, not less.
 | 2026-07-13 | [2026-07-13-elixir-120-gradual-typing](./runs/2026-07-13-elixir-120-gradual-typing/) | [KO](https://var.gg/ko/blog/elixir-120-gradual-typing) | benchmark (backfill) |
 | 2026-07-12 | [2026-07-12-css-anchor-positioning-floating-ui](./runs/2026-07-12-css-anchor-positioning-floating-ui/) | [KO](https://var.gg/ko/blog/css-anchor-positioning-floating-ui) | capability_verification |
 | 2026-07-11 | [2026-07-11-otel-weaver-semconv-registry](./runs/2026-07-11-otel-weaver-semconv-registry/) | [KO](https://var.gg/ko/blog/otel-weaver-semconv-registry) | capability_verification |
+| 2026-07-10 | [2026-07-10-lancedb-embedded-vector-lakehouse](./runs/2026-07-10-lancedb-embedded-vector-lakehouse/) | [KO](https://var.gg/ko/blog/lancedb-embedded-vector-lakehouse) | capability_verification (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |

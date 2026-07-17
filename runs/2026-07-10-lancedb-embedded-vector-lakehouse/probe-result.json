@@ -1,0 +1,70 @@
+{
+  "lancedb_version": "0.34.0",
+  "connection_type": "LanceDBConnection",
+  "exp_b_exact_topk": {
+    "pairs_id_squared_l2": [
+      [
+        0,
+        0.0
+      ],
+      [
+        2,
+        0.02
+      ],
+      [
+        1,
+        2.0
+      ],
+      [
+        3,
+        4.0
+      ]
+    ],
+    "order": [
+      0,
+      2,
+      1,
+      3
+    ],
+    "distance_is_squared_l2": true,
+    "deterministic_3x": true
+  },
+  "exp_d_versioning": {
+    "version_after_create": 1,
+    "version_after_add": 2,
+    "n_versions": 2,
+    "rows_at_v1": 4,
+    "rows_latest": 5,
+    "time_travel_works": true
+  },
+  "exp_e_ann_vs_exact": {
+    "n": 50000,
+    "d": 32,
+    "seed": 42,
+    "k": 10,
+    "recall_default_nprobes": 0.7,
+    "recall_nprobes64_refine10": 0.9,
+    "ann_trades_recall_for_speed": true,
+    "tuning_recovers_recall": true
+  },
+  "exp_f_fts": {
+    "fox_id_score": [
+      [
+        3,
+        0.7549
+      ],
+      [
+        0,
+        0.6407
+      ]
+    ],
+    "fox_ids": [
+      3,
+      0
+    ],
+    "lazy_ids": [
+      1
+    ],
+    "fts_zero_embeddings": true
+  }
+}
