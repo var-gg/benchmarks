@@ -1,0 +1,98 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-17",
+  "reverified_at": "2026-07-19",
+  "note": "Five experiments (A-E) against DBOS Transact 2.27.0 on the SQLite default backend. The durable claims are the RECOVERY SEMANTICS (which steps replay vs re-run) and the version-trap / durability-tax SHAPE. Absolute recovery latencies are point observations (machine-dependent) and reproduced within the same order of magnitude on the 2026-07-19 re-run.",
+
+  "findings": [
+    {
+      "id": "kill_test_mid_step",
+      "experiment": "A (crash-during)",
+      "claim": "Hard-killing the process mid-step and merely relaunching resumes the workflow to SUCCESS.",
+      "detail": "step3 hard-crashes on its first attempt (os._exit(42), before its output is checkpointed). On relaunch in a NEW process, step1/step2 are NOT re-executed (their outputs are replayed from the DB) and step3 is re-executed, then step4/step5 run to completion. Final status=SUCCESS, result 'result-1,...,result-5'. No queue, no server — pip install + decorators + SQLite default only."
+    },
+    {
+      "id": "step_is_at_least_once",
+      "experiment": "B (crash-between)",
+      "claim": "The unit of at-least-once is the STEP: a completed (checkpointed) step is never re-run; only a step that died before recording is.",
+      "detail": "Crash AFTER step3 completes but BEFORE step4 starts. On relaunch, step3 is NOT re-executed (ledger shows no second step3 line) and the workflow continues from step4. Contrast with experiment A where step3 died mid-execution and WAS re-run. Implication: a side effect inside a step (e.g. a payment API call) can run more than once across a crash — idempotency keys remain the caller's responsibility. 'Exactly-once' holds for the workflow only if each step is idempotent."
+    },
+    {
+      "id": "recovery_is_db_replay",
+      "experiment": "C (inspect SQLite)",
+      "claim": "The 'magic' is a database, not a runtime trick: recovery is replay from ~10 tables.",
+      "detail": "The DBOS system db (dbos-firsthand.sqlite, 164KB) contains 10 tables including workflow_status (status, name, recovery_attempts, application_version) and operation_outputs (per-step function_id order + serialized output). On recovery, if a step's function_id already has a recorded output, DBOS returns that output WITHOUT calling the function (replay); otherwise it executes and records. workflow_status for kill-test-1 shows status=SUCCESS, recovery_attempts=2 after the crash+resume cycle.",
+      "tables": ["application_versions", "dbos_migrations", "notifications", "operation_outputs", "queues", "streams", "workflow_events", "workflow_events_history", "workflow_schedules", "workflow_status"]
+    },
+    {
+      "id": "version_trap",
+      "experiment": "D (version trap)",
+      "claim": "If the code (app version) changes, recovery STOPS — a pending workflow is not handed to a process running a different version.",
+      "detail": "Crash under APP_VERSION=alpha. Relaunch under APP_VERSION=beta: the workflow stays PENDING for the full 30s wait window, with a warning that 'beta' is not the latest version. Relaunch under APP_VERSION=alpha (matching): immediate recovery to SUCCESS. Reason: replay assumes the same code calls the same steps in the same order, so DBOS will not give a version-mismatched process a pending workflow (default). Operational consequence: 'just relaunch and it continues' is true FOR THE SAME CODE VERSION; a rolling deploy that changes the code mid-flight can orphan in-flight workflows (they need an old-version executor, or a fork/patch to migrate)."
+    },
+    {
+      "id": "durability_tax",
+      "experiment": "E (overhead)",
+      "claim": "Durability is not free: each no-op durable step costs ~2.3ms on local SQLite (the per-step checkpoint write).",
+      "detail": "A 200-no-op-step workflow takes ~0.46s vs ~9e-06s for the equivalent plain function calls -> ~2.3ms per step, all attributable to the checkpoint write. Do not wrap tight-loop inner calls as steps. A remote Postgres backend would add network RTT on top and be larger (cited, NOT measured here)."
+    }
+  ],
+
+  "metrics": [
+    {
+      "id": "recovery_latency",
+      "label": "Relaunch -> workflow SUCCESS after a mid-flight hard kill (same app version)",
+      "unit": "s",
+      "measured_2026_07_17": 0.06,
+      "reobserved_2026_07_19": [0.04, 0.01],
+      "portable": false,
+      "note": "Machine-dependent (SQLite on local disk). The DURABLE claim is that relaunch alone recovers; the seconds are an observation, not a portable number."
+    },
+    {
+      "id": "durability_tax_ms_per_step",
+      "label": "Per-step cost of a no-op durable step (200-step workflow, local SQLite)",
+      "unit": "ms",
+      "measured_2026_07_17": 2.3,
+      "reobserved_2026_07_19": 2.3,
+      "portable": "ratio-only",
+      "note": "vs ~9e-06s total for 200 plain calls. The signal is 'checkpointing has a real per-step cost, order 1-10ms on local SQLite', not the exact 2.3."
+    },
+    {
+      "id": "version_mismatch_recovery",
+      "label": "Recovery under a MISMATCHED app version",
+      "unit": "status",
+      "value": "PENDING (no recovery) for the full 30s wait; SUCCESS only under the matching version",
+      "portable": true
+    }
+  ],
+
+  "evidence_ledgers": {
+    "note": "Verbatim append-only ledgers from the 2026-07-17 run (ground truth of real (re-)execution). 'EXECUTED' = the code actually ran; absence on replay = DBOS returned a recorded output without running.",
+    "crash_during": [
+      "--- crash-during launch pid=61404 app_version=pin1",
+      "step1 EXECUTED / step2 EXECUTED / step3 EXECUTED",
+      "step3 KILLING PROCESS MID-STEP",
+      "--- resume launch pid=35716 app_version=pin1",
+      "step3 EXECUTED (re-run) / step4 EXECUTED / step5 EXECUTED  -> SUCCESS"
+    ],
+    "crash_between": [
+      "--- crash-between launch pid=66548 app_version=pin1",
+      "step1/step2/step3 EXECUTED",
+      "KILLING PROCESS BETWEEN step3 AND step4",
+      "--- resume launch pid=62324 app_version=pin1",
+      "step4 EXECUTED / step5 EXECUTED  (step3 NOT re-run) -> SUCCESS"
+    ],
+    "version_trap": [
+      "--- crash-during launch app_version=alpha ... KILLING MID-STEP",
+      "--- resume launch app_version=beta   -> PENDING (no step re-runs)",
+      "--- resume launch app_version=alpha  -> step3/4/5 EXECUTED -> SUCCESS"
+    ]
+  },
+
+  "explicitly_not_verified": [
+    { "id": "postgres_backend", "note": "Only the SQLite default backend was exercised. The production-recommended Postgres backend adds network RTT to every checkpoint; the durability tax there is cited as larger, NOT measured." },
+    { "id": "who_relaunches", "note": "DBOS recovers a workflow WHEN a process relaunches. It does not resurrect the process itself — a supervisor (systemd / k8s / a human) must restart it. That layer was not part of this probe." },
+    { "id": "concurrent_recovery", "note": "Single-process recovery only. Multi-executor / distributed recovery and queue semantics under contention were not tested." },
+    { "id": "cross_language", "note": "Python SDK only. TS/Go/Java SDKs share the design but were not run." }
+  ]
+}

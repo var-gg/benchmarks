@@ -1,0 +1,55 @@
+{
+  "run_id": "2026-07-17-dbos-durable-execution",
+  "post_slug": "dbos-durable-execution",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/dbos-durable-execution"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-17T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": false,
+  "reverified_at": "2026-07-19",
+  "reverification_note": "The committed probe.py is the exact file executed on 2026-07-17. It was re-run end-to-end on 2026-07-19 (fresh venv, dbos 2.27.0) and every qualitative finding reproduced identically: mid-step crash replays only the unrecorded step, completed steps never re-run, the SQLite system db has 10 tables / recovery_attempts=2, a mismatched app version leaves the workflow PENDING (orphaned), and the 200-no-op durability tax was again ~2.3ms/step. Absolute recovery latency drifts run-to-run (0.01-0.06s) and is machine-dependent; it is not a durable claim.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "python": "CPython 3.11.9 (venv)",
+    "packages": {
+      "dbos": "2.27.0",
+      "sqlalchemy": "2.0.51"
+    },
+    "backend": "SQLite (DBOS default, zero server) — system_database_url = sqlite:///dbos-firsthand.sqlite",
+    "note": "This is a semantics + micro-cost probe, not a throughput benchmark. The portable signals are the RECOVERY BEHAVIOR (what replays vs re-runs) and the SHAPE of the version-trap and durability-tax, not absolute latencies."
+  },
+
+  "subject": {
+    "name": "DBOS Transact (Python)",
+    "version": "2.27.0 (PyPI wheel, released 2026-07-14)",
+    "invocation": "@DBOS.workflow / @DBOS.step decorators; DBOS.launch() recovers pending workflows from the system DB on start",
+    "license": "MIT",
+    "freshness_note": "2.27.0 was 3 days old at run time; 2.28.0 alphas ship near-daily. Durable execution as a PATTERN is not new (Temporal 2019, Azure Durable Functions earlier). What is fresh in 2026: AWS Lambda durable functions (2025-12, rolling out through H1 2026) mainstreamed the category, and DBOS's library-only + SQLite-default approach drops the entry barrier to a single pip install. Pin 2.27.0 — the API surface (config keys, list_workflow_steps) moves between minor versions."
+  },
+  "baseline": [
+    { "name": "no-op function calls (durability tax denominator)", "invocation": "plain python calls vs the same calls wrapped as @DBOS.step" }
+  ],
+
+  "method": {
+    "ground_truth": "An append-only side-effect ledger file (ledger.txt). Each step appends 'stepN EXECUTED pid=...' BEFORE any checkpoint, so the ledger records every real (re-)execution of the code — this is what distinguishes 'the step ran again' from 'DBOS replayed a recorded output without running it'.",
+    "hard_kill": "os._exit(42/43) — an immediate process death that skips even python finally blocks, simulating SIGKILL / power loss rather than a graceful shutdown.",
+    "isolation": "Each experiment uses its own work dir (w-baseline / w-during / w-between / w-trap / w-overhead) and a fixed workflow id (kill-test-1), so runs never contaminate each other.",
+    "determinism": "The workflow is deterministic by construction: fixed step count, no RNG, no clock reads inside steps."
+  },
+
+  "determinism": {
+    "recovery_behavior_deterministic": true,
+    "recovery_latency_deterministic": false,
+    "note": "WHICH steps replay vs re-run, the version-trap PENDING outcome, and the SQLite table set are deterministic and reproduce exactly. Recovery LATENCY (seconds from relaunch to SUCCESS) and the exact ms/step vary with disk + scheduler and are reported as observations, not portable numbers."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "venv + per-experiment SQLite files + ledgers deleted after the run (finite local disk)",
+    "note": "run.sh regenerates all of them deterministically from probe.py. The 2026-07-17 ledger evidence is quoted verbatim in results.json -> evidence_ledgers."
+  }
+}

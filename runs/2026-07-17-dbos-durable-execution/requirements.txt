@@ -1,0 +1,4 @@
+# Pinned to the version measured on 2026-07-17. DBOS moves fast (2.28.0 alphas
+# ship near-daily); the config keys and list_workflow_steps API drift between
+# minor versions, so pin exactly for parity.
+dbos==2.27.0
