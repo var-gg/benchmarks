@@ -1,0 +1,50 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies Astro 7 compiler behavior, GFM markdown built-ins, and the agent-native background dev-server lifecycle. Not a timing benchmark. No statistical distribution applies: each check is a deterministic pass/fail observation for astro@7.0.6. source_of_truth = probe-result.json (a fresh 2026-07-20 execution).",
+
+  "subject": "astro 7.0.6 (Rust compiler, Vite 8 / Rolldown)",
+
+  "behaviors_verified": [
+    {
+      "id": "A1_jsx_whitespace_collapse",
+      "claim": "Astro 7's Rust compiler collapses insignificant JSX-style whitespace: a newline+indent between two adjacent <span> elements produces NO visible space.",
+      "fixture": "fixtures/index.astro",
+      "observed": "dist/index.html => <p id=\"ws\"><span>Hello</span><span>World</span></p> (renders 'HelloWorld')",
+      "result": "PASS",
+      "old_behavior_cited_not_measured": "Astro 6's Go compiler preserved the whitespace ('Hello World'). This regression contrast is cited from the migration guide, not executed here."
+    },
+    {
+      "id": "A2_unterminated_tag_hard_error",
+      "claim": "An unterminated <p> tag is a HARD compiler error under Astro 7 — the build fails with exit 1 instead of silently auto-closing.",
+      "fixture": "fixtures/broken.astro",
+      "observed": "build_exit_code=1; '[CompilerError] Expected corresponding JSX closing tag for p'; stacktrace routes through rolldown (confirms Vite 8 / Rolldown backend).",
+      "result": "PASS (failure IS the expected behavior)",
+      "old_behavior_cited_not_measured": "Astro 6 silently inserted the missing closing tag. Cited, not measured."
+    },
+    {
+      "id": "B_agent_native_dev_server",
+      "claim": "Astro 7 ships an agent-native background dev server: `astro dev --background` detaches and reports a pid, `astro dev status` reports it running in background, a machine-readable lockfile (.astro/dev.json) tracks pid/port/url, and `astro dev stop` when nothing is running exits 0 (idempotent).",
+      "observed": "start reports pid; status reports 'background'; .astro/dev.json lockfile present; second stop => 'No dev server is running.' exit 0.",
+      "result": "PASS",
+      "note": "CLI surface confirmed: subcommands stop/status/logs[--follow] + flag --background. Logs are NDJSON. The non-TTY auto-background behavior noted in the post is documented but not asserted by this automated probe."
+    },
+    {
+      "id": "C_gfm_builtin_no_plugins",
+      "claim": "GFM markdown (tables, strikethrough, footnotes, task lists) renders out of the box with ZERO remark/rehype plugins installed, via the Rust markdown pipeline (Sätteri = pulldown-cmark + Oxc).",
+      "fixture": "fixtures/post.md",
+      "observed": "dist/post/index.html contains <table>, <del>, footnote refs, and type=checkbox task items — no plugins configured.",
+      "result": "PASS"
+    }
+  ],
+
+  "cited_not_measured": [
+    { "claim": "Rust compiler alone accounts for ~6% of build-time improvement; the larger 15-61% headline gains are mostly Vite 8 / Rolldown.", "source": "Astro 7 release notes", "note": "Build times are machine-dependent and non-deterministic, so they are excluded from firsthand evidence entirely." },
+    { "claim": "Astro 6's Go compiler preserved JSX whitespace and auto-closed unterminated tags.", "source": "Astro migration guide", "note": "Astro 6 was not installed; the before/after contrast is cited." }
+  ],
+
+  "honest_limitations": [
+    "Only the Astro 7 side is executed. Every 'old behavior' contrast is cited, not measured.",
+    "Whitespace/HTML-correction breaking changes can cause render regressions in existing projects (a migration hazard, not a bug).",
+    "Build/install timing is deliberately not part of the evidence — the harness records pass/fail behavior only."
+  ]
+}

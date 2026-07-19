@@ -1,0 +1,24 @@
+{
+  "astro_version": "7.0.6",
+  "exp_A1_whitespace_collapse": {
+    "output_p": "<p id=\"ws\"><span>Hello</span><span>World</span></p>",
+    "collapsed_no_space": true
+  },
+  "exp_A2_unterminated_tag": {
+    "build_exit_code": 1,
+    "compiler_error_matched": true,
+    "via_rolldown": true
+  },
+  "exp_B_background_dev_server": {
+    "start_reports_pid": true,
+    "status_reports_background": true,
+    "lockfile_present": true,
+    "stop_when_not_running_exit0": true
+  },
+  "exp_C_gfm_builtin_no_plugins": {
+    "table": true,
+    "strikethrough_del": true,
+    "footnote": true,
+    "task_checkbox": true
+  }
+}
