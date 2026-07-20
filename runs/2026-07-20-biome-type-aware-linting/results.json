@@ -1,0 +1,52 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies whether Biome 2.5.4's type-aware lint rules fire (pass/fail on diagnostic presence), with `typescript` NOT installed. No statistical distribution applies: fixed fixtures produce fixed diagnostics for a pinned Biome build.",
+
+  "precondition": {
+    "biome_version": "2.5.4",
+    "typescript_installed": false,
+    "config": "biome.json → linter.rules.nursery.noFloatingPromises: 'error', recommended: false; plugins: ['./plugins/no-object-assign.grit']",
+    "source_of_truth": "probe-result.json"
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "type_aware_without_tsc",
+      "claim": "A type-aware rule (noFloatingPromises) distinguishes a discarded Promise from an awaited one with NO typescript installed — Biome infers the return type itself.",
+      "fixture": "fixtures/floating.ts",
+      "evidence": "probe-result.json → exp1_floating_flagged_no_tsc",
+      "value": "bare save() flagged; await save() not flagged; node_modules/typescript absent",
+      "result": "verified"
+    },
+    {
+      "id": "cross_file_project_scan",
+      "claim": "The floating-promise check works ACROSS files: a function's Promise return type, known only via import, is still resolved by Biome's project scanner.",
+      "fixture": "fixtures/mod-a.ts (defines fetchUser(): Promise), fixtures/mod-b.ts (bare call)",
+      "evidence": "probe-result.json → exp2_cross_file_flagged",
+      "value": "mod-b.ts bare fetchUser(1) flagged; project-wide scan indexes mod-a's signature",
+      "result": "verified"
+    },
+    {
+      "id": "coverage_boundary",
+      "claim": "Biome's own inference is not a full type system. It flags native Promise-returning calls and Promise.all aggregates, but MISSES a hand-rolled PromiseLike thenable that typescript-eslint would catch — a concrete slice of the ~75% coverage gap.",
+      "fixture": "fixtures/boundary.ts",
+      "evidence": "probe-result.json → exp3_boundary_flagged_lines",
+      "value": "flagged lines = {3 native Promise, 11 Promise.all}; line 8 custom thenable NOT flagged",
+      "result": "verified (honest limitation)"
+    },
+    {
+      "id": "gritql_plugin_no_compile",
+      "claim": "A custom lint rule can be authored as a single declarative .grit query — no Rust/JS rule compilation — and it fires with category `plugin`.",
+      "fixture": "fixtures/spread.ts + plugins/no-object-assign.grit",
+      "evidence": "probe-result.json → exp4_gritql_plugin_flagged",
+      "value": "Object.assign({}, a, {y:2}) flagged with the custom message; category plugin",
+      "result": "verified"
+    }
+  ],
+
+  "cited_not_measured": [
+    { "claim": "Biome's type-aware rules cover roughly 75% of typescript-eslint's type-aware rule set.", "source": "Biome v2 announcement", "url": "https://biomejs.dev/blog/biome-v2/" },
+    { "claim": "Biome lints ~10-20x faster than ESLint on comparable projects.", "source": "Biome docs / v2 announcement (machine-dependent, NOT measured in this run)" },
+    { "claim": "noFloatingPromises remains in the nursery group (opt-in) as of 2.5.4.", "source": "Biome 2.5 release notes", "url": "https://biomejs.dev/blog/biome-v2-5/" }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-07-20-biome-type-aware-linting",
+  "post_slug": "biome-type-aware-linting",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/biome-type-aware-linting"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-20T06:30:00+09:00",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11",
+    "node": "v24.15.0",
+    "package_manager": "npm",
+    "typescript_installed": false,
+    "docker": "not used",
+    "note": "This is a linter-behavior check (does a diagnostic fire, yes/no), not a timing benchmark. The decisive precondition is that `typescript` is NOT installed in node_modules — the type-aware rules must infer types on their own. CPU/RAM do not affect pass/fail, so they are omitted. Speed numbers (Biome's cited 10-20x over ESLint) are NOT measured here; they are machine-dependent and only cited in the post."
+  },
+
+  "subject": {
+    "name": "@biomejs/biome",
+    "version": "2.5.4",
+    "install": "npm install @biomejs/biome  (2 packages, no typescript)",
+    "note": "noFloatingPromises is lint/nursery/noFloatingPromises, domain `types`, available since 2.0.0 — still nursery (opt-in) as of 2.5.4, not in the recommended set."
+  },
+  "baseline": {
+    "name": "typescript-eslint (typed-linting)",
+    "note": "Compared conceptually in the post: what Biome's own type inference catches vs what typescript-eslint's full type-checker catches. No typescript-eslint code was executed in this run; the coverage gap (EXP3-B, a hand-rolled thenable) is a firsthand observation of Biome, and the comparison to typescript-eslint's behavior is cited from Biome's own '~75% of typescript-eslint's type-aware rules' framing, not measured."
+  },
+
+  "tool": {
+    "name": "npm + @biomejs/biome CLI",
+    "language": "bash harness (probe.sh)",
+    "node": "v24.15.0"
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "The harness installs @biomejs/biome into a throwaway work/ dir (node_modules, ~2 packages) which run.sh recreates and which is .gitignored — it is not committed. The deterministic evidence — probe-result.json (the four pass/fail diagnostics) — is committed. Fixed fixtures produce fixed diagnostics, so a re-run reproduces the same booleans on the pinned Biome version."
+  }
+}

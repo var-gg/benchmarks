@@ -1,0 +1,8 @@
+{
+  "biome_version": "2.5.4",
+  "typescript_installed": false,
+  "exp1_floating_flagged_no_tsc": true,
+  "exp2_cross_file_flagged": true,
+  "exp3_boundary_flagged_lines": "boundary.ts:3 boundary.ts:11  (3=nativePromise 11=Promise.all; line 8 custom thenable expected ABSENT)",
+  "exp4_gritql_plugin_flagged": true
+}

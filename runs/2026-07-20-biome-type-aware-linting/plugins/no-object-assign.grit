@@ -1,0 +1,3 @@
+`Object.assign($args)` where {
+  register_diagnostic(span=$args, message="Prefer object spread over Object.assign")
+}
