@@ -1,0 +1,3 @@
+# Reproduction scratch created by run.sh — downloaded runtimes, cargo target/,
+# built .wasm, fixture dirs. All regenerable, never committed.
+work/

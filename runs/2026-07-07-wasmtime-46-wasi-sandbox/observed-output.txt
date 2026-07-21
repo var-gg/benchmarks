@@ -1,0 +1,67 @@
+# Console transcripts recorded during the original run (2026-07-01, Windows 11).
+# Preserved verbatim from the run notes. Guest output labels are Korean because the
+# guest programs were written in Korean for the post; README.md translates them.
+#
+# Version strings were read directly from the binaries:
+#   wasmtime 46.0.0 (423be7a4e 2026-06-22)
+#   wasmtime 46.0.1 (823d1b8f2 2026-06-24)
+
+===============================================================================
+EXP-A — capability / preopen boundary (wasmtime CLI, guest_a.wasm)
+===============================================================================
+
+$ wasmtime run --dir sandbox::/ guest_a.wasm
+[OK]   preopen 안 allowed.txt 읽음: "allowed-content-123"
+[OK]   탈출 차단(../secret.txt): Operation not permitted (os error 63)
+[OK]   절대경로 차단(/etc/hosts): No such file or directory (os error 44)
+
+    line 1: read inside the preopen succeeded
+    line 2: relative escape refused as a PERMISSION violation (not "not found")
+    line 3: absolute host path is simply not there
+
+$ wasmtime run guest_a.wasm
+[ERR]  allowed.txt: No such file or directory (os error 44)
+
+    No --dir at all: the file exists on the host disk, but with zero preopens the
+    guest cannot see it. This is what "no ambient authority" looks like in practice.
+
+$ wasmtime run --help | grep -A1 -- --dir
+      --dir <HOST_DIR[::GUEST_DIR]>
+          Grant access of a host directory to a guest.
+
+    The CLI has no read-only variant of --dir. Fine-grained DirPerms/FilePerms
+    combinations only exist when embedding wasmtime as a library.
+
+===============================================================================
+EXP-C — FilePerms bypass A/B (embedding host, guest_cve.wasm)
+===============================================================================
+
+Host preopens (harness/host/src/main.rs, identical for both versions):
+    ro -> DirPerms::all(), FilePerms::READ
+    rw -> DirPerms::all(), FilePerms::all()
+
+Initial state:  ro/secret.txt = "SECRET-readonly-original"
+
+Guest steps: 1) open ro/secret.txt for write  2) hard_link ro/secret.txt -> rw/leaked
+             3) write to rw/leaked            4) read back ro/secret.txt
+
+--- wasmtime 46.0.0 (vulnerable) -----------------------------------------------
+=== wasmtime 46.0.0 (취약) ===
+[1 직접쓰기]   ro/secret.txt write-open: BLOCKED: Operation not permitted (os error 63)
+[2 하드링크]   ro/secret.txt -> rw/leaked: LINKED
+[3 우회쓰기]   rw/leaked write: WROTE
+[4 원본확인]   ro/secret.txt = "MODIFIED-VIA-LINK"
+
+--- wasmtime 46.0.1 (patched) --------------------------------------------------
+=== wasmtime 46.0.1 (패치) ===
+[1 직접쓰기]   ro/secret.txt write-open: BLOCKED: Operation not permitted (os error 63)
+[2 하드링크]   ro/secret.txt -> rw/leaked: BLOCKED: Operation not permitted (os error 63)
+[3 우회쓰기]   rw/leaked write: WROTE
+[4 원본확인]   ro/secret.txt = "SECRET-readonly-original"
+
+Reading the two transcripts:
+  step 1 is identical — the front door was locked on both versions.
+  step 2 is the whole vulnerability: 46.0.0 grants the link, 46.0.1 refuses it.
+  step 3 is identical AND misleading — on 46.0.0 that write lands on the protected
+         inode, on 46.0.1 rw/leaked is a brand-new independent file.
+  step 4 is the only line that settles it: the protected file's final content.

@@ -1,0 +1,52 @@
+{
+  "run_id": "2026-07-07-wasmtime-46-wasi-sandbox",
+  "post_slug": "wasmtime-46-wasi-sandbox",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/wasmtime-46-wasi-sandbox"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-01T00:00:00+09:00",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The experiments were executed on 2026-07-01 and the post published 2026-07-07; this run directory was packaged later (2026-07-22). What is preserved VERBATIM from the original run: the embedding host source (harness/host/src/main.rs) and the console transcripts in observed-output.txt. What is RECONSTRUCTED so a third party can re-run the method: the two guest programs (harness/guest_a.rs, harness/guest_cve.rs), the host Cargo.toml, and run.sh — re-authored from the run notes and the transcripts they produced, not byte-preserved originals. results.json reports the behavior observed on 2026-07-01. No hashes of the original binaries were captured at run time; that is stated here rather than fabricated.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 (native, no WSL)",
+    "rust_target": "wasm32-wasip1",
+    "docker": "not used",
+    "received_images": [],
+    "note": "This is a permission-boundary check (is an operation allowed or refused, and what does the protected file contain afterwards), not a timing benchmark. CPU/RAM do not affect pass/fail and are omitted. Hard-link and rename semantics can differ subtly per host OS — the transcripts are what was observed on Windows 11."
+  },
+
+  "subject": {
+    "name": "wasmtime",
+    "versions": {
+      "vulnerable": "46.0.0 (423be7a4e 2026-06-22)",
+      "patched": "46.0.1 (823d1b8f2 2026-06-24)"
+    },
+    "install": "official prebuilt release binaries for the CLI experiment; the `wasmtime` / `wasmtime-wasi` crates pinned to =46.0.0 and =46.0.1 for the embedding experiment",
+    "note": "Version pins are exact (`=46.0.0`, `=46.0.1`). The whole point is an A/B across a one-patch-version boundary, so `latest` would destroy the evidence."
+  },
+
+  "vulnerability": {
+    "id": "GHSA-4ch3-9j33-3pmj",
+    "url": "https://github.com/bytecodealliance/wasmtime/security/advisories/GHSA-4ch3-9j33-3pmj",
+    "severity": "CVSS 6.5 Moderate, Local, Scope:Changed, Integrity:High",
+    "affected": "<24.0.11, >=25.0.0 <36.0.12, >=37.0.0 <45.0.3, 46.0.0",
+    "patched_in": "24.0.11 / 36.0.12 / 45.0.3 / 46.0.1",
+    "cli_affected": false
+  },
+
+  "tool": {
+    "name": "rustc + cargo + wasmtime",
+    "rustc_target": "wasm32-wasip1",
+    "language": "Rust guests (wasm32-wasip1) + Rust embedding host + bash driver (run.sh)"
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "tool binaries and cargo target/ discarded at run time (finite local disk); transcripts and host source retained",
+    "note": "The wasmtime release binaries and the host's cargo target/ directory were deleted after the run per the firsthand-cleanup policy. observed-output.txt (the decisive evidence) and the host source were kept and are committed here. run.sh re-downloads the pinned binaries into a .gitignored work/ dir."
+  }
+}

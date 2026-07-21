@@ -1,0 +1,85 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies (a) that a WASI guest has zero ambient authority, and (b) that Wasmtime 46.0.0 lets a FilePerms::READ file be modified through a hard link into a FilePerms::all() preopen, while 46.0.1 refuses the link. Pass/fail on operation outcome plus the protected file's final CONTENT — the content is what settles it, because the write in step 3 'succeeds' on both versions and means opposite things.",
+
+  "precondition": {
+    "guest_target": "wasm32-wasip1",
+    "host_preopens": {
+      "ro": "DirPerms::all() + FilePerms::READ  — directory may be reorganized, file CONTENT is read-only",
+      "rw": "DirPerms::all() + FilePerms::all()"
+    },
+    "why_this_config": "If `ro` were given DirPerms::READ only, the link's source side would already be refused and the CVE could not appear at all. DirPerms::all() + FilePerms::READ ('you may tidy the directory, you may not rewrite the files') is the precise vulnerable precondition — and a realistic one.",
+    "source_of_truth": "observed-output.txt"
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "no_ambient_authority",
+      "claim": "A WASI guest starts with NO filesystem authority. Without a preopen, a file that exists on disk is not merely unreadable — it does not exist from the guest's point of view.",
+      "harness": "harness/guest_a.rs via the wasmtime CLI",
+      "evidence": "observed-output.txt → EXP-A, second transcript (`wasmtime run guest_a.wasm`, no --dir)",
+      "value": "allowed.txt → No such file or directory (os error 44), even though the file is present on the host",
+      "result": "verified"
+    },
+    {
+      "id": "preopen_is_the_boundary",
+      "claim": "With one directory handed over (`--dir sandbox::/`), reads inside it succeed, a relative escape `../` is refused as a permission violation, and an absolute host path is invisible.",
+      "harness": "harness/guest_a.rs via the wasmtime CLI",
+      "evidence": "observed-output.txt → EXP-A, first transcript",
+      "value": "allowed.txt = \"allowed-content-123\"; ../secret.txt → os error 63 (Operation not permitted); /etc/hosts → os error 44",
+      "result": "verified"
+    },
+    {
+      "id": "cve_hardlink_bypass_46_0_0",
+      "claim": "On 46.0.0 a read-only-content file can be rewritten by hard-linking it into a writable preopen: the direct write-open is refused, but the link succeeds and the write through the new name modifies the protected original.",
+      "harness": "harness/guest_cve.rs against harness/host (wasmtime =46.0.0)",
+      "evidence": "observed-output.txt → EXP-C, 46.0.0 transcript",
+      "value": "step1 BLOCKED (os error 63) · step2 LINKED · step3 WROTE · step4 ro/secret.txt = \"MODIFIED-VIA-LINK\"",
+      "result": "verified (vulnerability reproduced)"
+    },
+    {
+      "id": "cve_fixed_46_0_1",
+      "claim": "On 46.0.1 the same guest, same host, same preopen config: the hard link itself is refused and the protected original is untouched.",
+      "harness": "harness/guest_cve.rs against harness/host (wasmtime =46.0.1)",
+      "evidence": "observed-output.txt → EXP-C, 46.0.1 transcript",
+      "value": "step1 BLOCKED · step2 BLOCKED (os error 63) · step3 WROTE · step4 ro/secret.txt = \"SECRET-readonly-original\"",
+      "result": "verified (patch confirmed)"
+    },
+    {
+      "id": "success_of_write_is_not_a_signal",
+      "claim": "Step 3 reports WROTE on BOTH versions. On 46.0.0 that write lands on the protected inode; on 46.0.1 `rw/leaked` is a separate new file. The outcome of the operation says nothing — only the protected file's final content does.",
+      "harness": "same run, both versions",
+      "evidence": "observed-output.txt → EXP-C, step 3 vs step 4 across both transcripts",
+      "value": "identical step-3 line, opposite step-4 content",
+      "result": "verified (this is the methodological point of the run)"
+    }
+  ],
+
+  "cited_not_measured": [
+    {
+      "claim": "The vulnerable code validated directory-mutation permission only and did not check that file permissions matched; rename was affected by the same path; symlinks were not affected.",
+      "source": "GHSA-4ch3-9j33-3pmj advisory text",
+      "url": "https://github.com/bytecodealliance/wasmtime/security/advisories/GHSA-4ch3-9j33-3pmj"
+    },
+    {
+      "claim": "The wasmtime CLI is unaffected because it always sets FilePerms::all() on every preopen.",
+      "source": "GHSA-4ch3-9j33-3pmj advisory. Consistent with the CLI's own --dir help text observed in this run, which offers no read-only flag — but 'the CLI always grants all perms internally' was not independently read out of the source here."
+    },
+    {
+      "claim": "Affected/patched version ranges (<24.0.11, 25.0.0–<36.0.12, 37.0.0–<45.0.3, 46.0.0 → 24.0.11 / 36.0.12 / 45.0.3 / 46.0.1).",
+      "source": "GHSA-4ch3-9j33-3pmj advisory. Only the 46.0.0 vs 46.0.1 pair was executed; the other branches are cited, not tested."
+    },
+    {
+      "claim": "WASI 0.3.0 was ratified 2026-06-11 and Wasmtime 46.0.0 (2026-06-22) is the first release with WASI 0.3.0 / component-model-async on by default.",
+      "source": "Bytecode Alliance WASI 0.3 announcement + Wasmtime v46.0.0 release notes",
+      "url": "https://bytecodealliance.org/articles/WASI-0.3"
+    }
+  ],
+
+  "explicitly_not_verified": [
+    "preview2 / component-model guests. The run is wasm32-wasip1 (preview1) only. The advisory's scope covers the shared wasmtime-wasi FilePerms check, but that was not executed here.",
+    "The other affected branches (24.x / 36.x / 45.x). Only the 46.0.0 ↔ 46.0.1 boundary was run.",
+    "Non-Windows hosts. Hard-link and rename semantics vary by OS; these transcripts are Windows 11.",
+    "rename() as a second bypass vector. The advisory names it; this run exercised hard_link only."
+  ]
+}

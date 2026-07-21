@@ -1,0 +1,14 @@
+# Embedding host for EXP-C. run.sh rewrites the two wasmtime pins to switch
+# between the vulnerable (=46.0.0) and patched (=46.0.1) runtime.
+#
+# Exact pins on purpose: the entire experiment is an A/B across one patch
+# version, so a caret range would silently destroy the evidence.
+[package]
+name = "wasi-perms-host"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+wasmtime = "=46.0.0"
+wasmtime-wasi = "=46.0.0"

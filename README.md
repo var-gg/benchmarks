@@ -27,6 +27,7 @@ most public benchmarks, not less.
 | 2026-07-11 | [2026-07-11-otel-weaver-semconv-registry](./runs/2026-07-11-otel-weaver-semconv-registry/) | [KO](https://var.gg/ko/blog/otel-weaver-semconv-registry) | capability_verification |
 | 2026-07-10 | [2026-07-10-lancedb-embedded-vector-lakehouse](./runs/2026-07-10-lancedb-embedded-vector-lakehouse/) | [KO](https://var.gg/ko/blog/lancedb-embedded-vector-lakehouse) | capability_verification (backfill) |
 | 2026-07-09 | [2026-07-09-astro-7-rust-agent-native](./runs/2026-07-09-astro-7-rust-agent-native/) | [KO](https://var.gg/ko/blog/astro-7-rust-agent-native) | capability_verification (backfill) |
+| 2026-07-07 | [2026-07-07-wasmtime-46-wasi-sandbox](./runs/2026-07-07-wasmtime-46-wasi-sandbox/) | [KO](https://var.gg/ko/blog/wasmtime-46-wasi-sandbox) | capability_verification (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
