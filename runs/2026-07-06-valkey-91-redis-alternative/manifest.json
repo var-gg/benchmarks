@@ -1,0 +1,70 @@
+{
+  "run_id": "2026-07-06-valkey-91-redis-alternative",
+  "post_slug": "valkey-91-redis-alternative",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/valkey-91-redis-alternative"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-05T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The measurements in results.json are VERBATIM from the session's firsthand notes taken on 2026-07-05 (used_memory bytes, key counts, rps figures). No harness script existed at the time: redis-benchmark was invoked ad hoc from the shell, and the invocations were recorded in prose. run.sh here is a RECONSTRUCTION of those recorded invocations (same flags: -n/-r/-d/-t/-P/-c), authored 2026-07-23 and syntax-checked, not the literal file executed on 2026-07-05. Two details of the original run are NOT recorded and are therefore chosen by run.sh rather than recovered: (a) which redis-benchmark client binary was used against each server, and (b) whether each phase started from a freshly booted server. See results.json -> explicitly_not_verified.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 + Docker 29.4.3, WSL2 backend (Linux 6.6.114-microsoft-standard-WSL2, x86_64)",
+    "topology": "single host, both servers as local containers, client on the same host",
+    "note": "Single-host microbenchmark. Not a production topology, no repeated-run p99 distribution. Absolute numbers are machine-bound; the durable signal is the DIRECTION of each comparison (memory consistently favors Valkey; throughput flips with pipeline depth)."
+  },
+
+  "subject": {
+    "name": "Valkey 9.1",
+    "image": "valkey/valkey:9.1",
+    "image_digest": "sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9",
+    "server_version": "9.1.0",
+    "version_note": "INFO reports redis_version:7.2.4 (RESP-compat field) alongside valkey_version:9.1.0 — the 7.2.4 string is a compatibility marker, not the actual server generation.",
+    "allocator": "jemalloc-5.3.0, 64bit"
+  },
+  "baseline": [
+    {
+      "name": "Redis 8",
+      "image": "redis:8",
+      "image_digest": "sha256:2838d5524559494f6f1cd66e97e76b200d64a633a8614200620755ed395daf32",
+      "server_version": "8.8.0",
+      "allocator": "jemalloc-5.3.0, 64bit"
+    }
+  ],
+
+  "pins": {
+    "policy": "Both engines are pinned BY DIGEST, not by tag. The tags valkey/valkey:9.1 and redis:8 are moving targets and will point at newer builds over time; the digests above are what was measured. Both digests were re-verified as resolvable on Docker Hub on 2026-07-23 (docker manifest inspect).",
+    "client_binary": "run.sh drives BOTH servers with the redis-benchmark shipped inside the redis:8 image (pinned by the same digest), so the client is held constant across engines. The original 2026-07-05 run did not record which client binary hit which server."
+  },
+
+  "workload": {
+    "memory_phase": "redis-benchmark -n 1000000 -r 1000000 -d 64 -t set -P 32 (random keyspace of 1e6, 64-byte values), then INFO memory / DBSIZE",
+    "throughput_unpipelined": "redis-benchmark -n 100000 -c 50 -P 1 -t set,get",
+    "throughput_pipelined": "redis-benchmark -n 200000 -c 50 -P 16 -t set,get",
+    "note": "The memory phase inserts ~632.5k distinct keys out of a 1e6 random keyspace (collisions are expected and are why the count is not 1e6); the two engines landed within +/-100 keys of each other, which is what makes the memory comparison apples-to-apples."
+  },
+
+  "determinism": {
+    "key_count_deterministic": false,
+    "memory_ratio_stable": true,
+    "throughput_deterministic": false,
+    "note": "Key counts land near 632.5k but are not bit-stable across runs (random keyspace). used_memory tracks the key count closely, so compare the RATIO between engines at similar DBSIZE rather than the absolute MB. Throughput rps varies run-to-run; the unpipelined run was repeated once per engine (both repeats recorded in results.json) while the pipelined run is single-shot (n=1) — treat its ~10% delta as the weakest claim in this run."
+  },
+
+  "reverification": {
+    "date": "2026-07-23",
+    "what": "run.sh was executed in SMOKE=1 mode (1/100 scale: 10k inserts over a 10k keyspace) twice on the same Windows/WSL2 host, to confirm the reconstructed harness actually runs and that the memory direction still holds on the pinned digests with a single constant client.",
+    "outcome": "Server versions confirmed (valkey_version 9.1.0 / redis_version 8.8.0, both jemalloc-5.3.0). Memory per key: Valkey 279.7 B and 277.1 B across the two smoke runs, Redis 373.6 B and 372.7 B — Valkey 25.1% and 25.7% lower, consistent with the 23.2% recorded at full scale.",
+    "limit": "SMOKE mode does NOT resolve the throughput comparison: at 5k-10k requests redis-benchmark's rps output is coarse and both engines landed in the same band. Only the full-scale run speaks to throughput.",
+    "artifact": "smoke-2026-07-23.txt (verbatim stdout of the second smoke run)"
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "Containers were started with --rm and named firsthand-valkey-91-redis-alternative-*; both pulled images were removed after the run per the workspace cleanup rule.",
+    "note": "No raw redis-benchmark stdout was retained — results.json carries the transcribed summary figures only."
+  }
+}

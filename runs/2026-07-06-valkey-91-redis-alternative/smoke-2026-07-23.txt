@@ -1,0 +1,69 @@
+### SMOKE MODE — 1/100 scale. Numbers are NOT comparable to results.json.
+==> network
+
+############################################################
+### Valkey 9.1 (valkey/valkey@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9)
+############################################################
+--- server version
+redis_version:7.2.4
+server_name:valkey
+valkey_version:9.1.0
+arch_bits:64
+mem_allocator:jemalloc-5.3.0
+
+--- phase 1: memory footprint (-n 10000 -r 10000 -d 64 -t set -P 32)
+DBSIZE: 6358
+used_memory:1761880
+used_memory_human:1.68M
+
+--- phase 2: throughput, no pipelining (-n 5000 -c 50 -P 1), run twice
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 208333.33 requests per second, p50=0.119 msec
+ GET: 208333.33 requests per second, p50=0.119 msec
+
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 156250.00 requests per second, p50=0.183 msec
+ GET: 185185.19 requests per second, p50=0.135 msec
+
+
+--- phase 3: throughput, pipeline depth 16 (-n 10000 -c 50 -P 16)
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 1428571.38 requests per second, p50=0.439 msec
+ GET: 2000000.00 requests per second, p50=0.303 msec
+
+
+############################################################
+### Redis 8 (redis@sha256:2838d5524559494f6f1cd66e97e76b200d64a633a8614200620755ed395daf32)
+############################################################
+--- server version
+redis_version:8.8.0
+arch_bits:64
+mem_allocator:jemalloc-5.3.0
+
+--- phase 1: memory footprint (-n 10000 -r 10000 -d 64 -t set -P 32)
+DBSIZE: 6317
+used_memory:2354344
+used_memory_human:2.25M
+
+--- phase 2: throughput, no pipelining (-n 5000 -c 50 -P 1), run twice
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 192307.69 requests per second, p50=0.135 msec
+ GET: 172413.80 requests per second, p50=0.151 msec
+
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 227272.73 requests per second, p50=0.111 msec
+ GET: 178571.42 requests per second, p50=0.143 msec
+
+
+--- phase 3: throughput, pipeline depth 16 (-n 10000 -c 50 -P 16)
+ SET: rps=0.0 (overall: 0.0) avg_msec=0.000 (overall: 0.000)                                                            SET: 1666666.62 requests per second, p50=0.391 msec
+ GET: 2500000.00 requests per second, p50=0.239 msec
+
+
+==> Done. Compare against results.json:
+
+    MEMORY (the claim)      Valkey ~67.9 MB vs Redis ~88.3 MB at ~632.5k keys
+                            -> expect Valkey ~20-25% lower at a similar DBSIZE.
+                            If DBSIZE differs by more than ~1%, compare bytes/key,
+                            not totals.
+
+    THROUGHPUT P=1          Valkey ahead (~9-13% in our run).
+    THROUGHPUT P=16         Redis ahead (~10% in our run).
+                            The SIGN FLIP is the point; the percentages are noisy.
+
+    Single host, standalone, default config, no cluster/replication/persistence.

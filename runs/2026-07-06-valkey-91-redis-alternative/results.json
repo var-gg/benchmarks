@@ -1,0 +1,82 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-05",
+  "note": "Single-host microbenchmark, Valkey 9.1.0 vs Redis 8.8.0 as local containers. Figures are transcribed verbatim from the session's firsthand notes. Memory is the strong claim (large, consistent gap at matched key counts); throughput is the weak one (single or double shot, and it flips sign with pipeline depth).",
+
+  "metrics": [
+    {
+      "id": "memory_footprint_same_dataset",
+      "label": "Memory — same dataset (redis-benchmark -n 1000000 -r 1000000 -d 64 -t set -P 32, then INFO memory)",
+      "unit": "used_memory bytes",
+      "cells": [
+        { "engine": "Valkey 9.1.0", "keys_inserted": 632539, "used_memory_bytes": 71160920, "used_memory_mb": 67.86 },
+        { "engine": "Redis 8.8.0",  "keys_inserted": 632438, "used_memory_bytes": 92627512, "used_memory_mb": 88.31 }
+      ],
+      "ratio_desc": "At key counts within +/-101 of each other, Valkey holds the same dataset in 23.2% less memory (-20.45 MB); equivalently Redis uses +30.2% over Valkey. This is the only measurement in the run where the gap is large enough, and the inputs matched closely enough, to call it a finding rather than noise."
+    },
+    {
+      "id": "throughput_unpipelined",
+      "label": "Throughput — no pipelining (-n 100000 -c 50 -P 1)",
+      "unit": "requests/sec",
+      "cells": [
+        { "engine": "Valkey 9.1.0", "op": "SET", "rps": 315457, "repeat_rps": 314465 },
+        { "engine": "Valkey 9.1.0", "op": "GET", "rps": 296736, "repeat_rps": null },
+        { "engine": "Redis 8.8.0",  "op": "SET", "rps": 277778, "repeat_rps": 289855 },
+        { "engine": "Redis 8.8.0",  "op": "GET", "rps": 270270, "repeat_rps": null }
+      ],
+      "ratio_desc": "Valkey leads by roughly 9-13% on single-request handling. Note the Redis SET repeat spread (277,778 -> 289,855, ~4%) — that is the run-to-run noise floor, so read the lead as 'Valkey ahead', not as a precise percentage."
+    },
+    {
+      "id": "throughput_pipelined",
+      "label": "Throughput — deep pipelining (-n 200000 -c 50 -P 16), single shot",
+      "unit": "requests/sec",
+      "cells": [
+        { "engine": "Valkey 9.1.0", "op": "SET", "rps": 2061856 },
+        { "engine": "Valkey 9.1.0", "op": "GET", "rps": 2409639 },
+        { "engine": "Redis 8.8.0",  "op": "SET", "rps": 2272727 },
+        { "engine": "Redis 8.8.0",  "op": "GET", "rps": 2702703 }
+      ],
+      "ratio_desc": "The sign flips: with a 16-deep pipeline Redis 8.8 leads by ~10% on both SET and GET. n=1 per cell — this is the least robust number in the run, and the post presents it as a direction, not a benchmark result."
+    }
+  ],
+
+  "reverification_2026_07_23": {
+    "mode": "SMOKE=1 (1/100 scale: -n 10000 -r 10000 -d 64 -t set -P 32), run twice, same host, single constant client (redis:8 redis-benchmark) against both servers",
+    "cells": [
+      { "run": 1, "engine": "Valkey 9.1.0", "keys": 6273, "used_memory_bytes": 1754296, "bytes_per_key": 279.7 },
+      { "run": 1, "engine": "Redis 8.8.0",  "keys": 6295, "used_memory_bytes": 2352104, "bytes_per_key": 373.6 },
+      { "run": 2, "engine": "Valkey 9.1.0", "keys": 6358, "used_memory_bytes": 1761880, "bytes_per_key": 277.1 },
+      { "run": 2, "engine": "Redis 8.8.0",  "keys": 6317, "used_memory_bytes": 2354344, "bytes_per_key": 372.7 }
+    ],
+    "verdict": "Memory finding reproduces: Valkey 25.1% / 25.7% less per key vs the 23.2% recorded at full scale on 2026-07-05. Because the smoke runs land at slightly different key counts, the comparison is made per key rather than on totals.",
+    "not_resolved": "Throughput. At 5k-10k requests redis-benchmark's rps figures are coarse and both engines landed in the same band (SET ~185k-227k unpipelined, ~1.4M-1.7M at P=16) — the smoke run neither confirms nor contradicts the full-scale sign flip."
+  },
+
+  "findings": [
+    {
+      "id": "memory_gap_favors_valkey",
+      "claim": "On the same 64-byte-value dataset at a matched key count, Valkey 9.1 uses ~23% less memory than Redis 8.8.",
+      "detail": "67.86 MB (632,539 keys) vs 88.31 MB (632,438 keys). The direction matches Valkey's own '~20% savings on small strings' claim; our conditions produced a slightly larger gap, plausibly because key-name and per-object metadata layout differences are included in used_memory."
+    },
+    {
+      "id": "throughput_ordering_is_workload_dependent",
+      "claim": "Performance ordering is not stable — it reverses with pipeline depth.",
+      "detail": "Unpipelined: Valkey ahead ~9-13%. Pipelined at depth 16: Redis ahead ~10%. Any single-number 'X is faster than Y' claim about these two engines is underdetermined by this run."
+    },
+    {
+      "id": "performance_is_a_weak_migration_argument",
+      "claim": "Performance is a weak reason to migrate between these engines; memory efficiency is the concrete one.",
+      "detail": "Because the throughput ordering flips with workload shape while the memory gap does not, this run supports the post's thesis: the primary migration driver is licensing/governance, and performance is a 'you do not lose' rather than a 'you gain'."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "client_binary_per_engine", "note": "Which redis-benchmark binary drove each server on 2026-07-05 was not recorded. If the valkey image's client hit Valkey and the redis image's client hit Redis, a small client-side difference is folded into the throughput numbers. run.sh removes this variable by using ONE client (redis:8's) for both — so a reproduction may not land exactly on the recorded rps." },
+    { "id": "fresh_server_per_phase", "note": "Whether each phase started from a freshly booted server (empty dataset) was not recorded. run.sh boots a fresh container per engine and runs the memory phase before the throughput phases; residual data from an earlier phase would shift used_memory." },
+    { "id": "p99_and_tail_latency", "note": "No latency distribution was collected — throughput only. redis-benchmark's own p50/p99 output was not retained." },
+    { "id": "repeated_runs_for_variance", "note": "Only the unpipelined SET cells were repeated (once). Everything else is n=1. No confidence intervals are claimed." },
+    { "id": "cluster_replication_persistence", "note": "Standalone, in-memory, default config only. No cluster mode, no replication, no AOF/RDB tuning — i.e. none of the Valkey 9.1 cluster-bus or failover changes discussed in the post were measured." },
+    { "id": "valkey_91_specific_features", "note": "The new commands (HGETDEL, MSETEX, CLUSTERSCAN) and the cluster-bus traffic metrics were read from release notes, cited but NOT measured here." },
+    { "id": "linux_native_host", "note": "Windows + Docker Desktop with a WSL2 backend. A native-Linux host would likely produce different absolute rps for both engines; only the cross-engine comparison is intended to carry over." }
+  ]
+}
