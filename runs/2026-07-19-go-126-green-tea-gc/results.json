@@ -1,0 +1,90 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-07-19",
+  "note": "Medians across n runs per cell (tree/graph n=5, flat n=3), one process per run, single machine. Headline metric is runtime.MemStats.GCCPUFraction — the share of total process CPU spent in GC since process start. Absolute percentages are machine- and workload-specific; the durable claims are the DIRECTION and the HEAP-SHAPE DEPENDENCE, not the exact -77%.",
+
+  "method": {
+    "ab_mechanism": "Same source, one toolchain (go1.26.5), compiled twice: default build = Green Tea GC (the 1.26 default), GOEXPERIMENT=nogreenteagc build = pre-1.26 classic GC.",
+    "shapes": {
+      "tree": "full ternary tree of 32-byte nodes (3 pointers + int64) — pointer-dense, high fanout",
+      "graph": "n small nodes each pointing at 3 random others — pointer-dense with cross-object edges (worst case for a scanning GC)",
+      "flat": "pointer-free int64 slabs (1M int64 = 8MB each) — almost nothing to scan"
+    },
+    "load": "live heap ~400MB of the chosen shape, then `churn` iterations allocating+dropping quarter-sized garbage of the same shape, to force GC cycles over that live heap. This is deliberately the 'heavily uses the GC' regime.",
+    "pinned": "GOGC=100 via debug.SetGCPercent(100) in both builds; fixed sizes; PRNG seeded 42",
+    "n": { "tree": 5, "graph": 5, "flat": 3 }
+  },
+
+  "metrics": [
+    {
+      "id": "gc_cpu_fraction_by_heap_shape",
+      "label": "GC overhead (GCCPUFraction, median) — classic GC vs Green Tea GC, per heap shape",
+      "unit": "% of process CPU spent in GC",
+      "cells": [
+        { "shape": "tree",  "classic_pct": 10.30, "green_pct": 2.38, "relative_change_pct": -77 },
+        { "shape": "graph", "classic_pct": 5.72,  "green_pct": 1.72, "relative_change_pct": -70 },
+        { "shape": "flat",  "classic_pct": 0.34,  "green_pct": 0.09, "relative_change_pct": -73 }
+      ],
+      "caveat": "flat's relative change is arithmetically similar to tree/graph but meaningless in practice: both sides are already under 0.5% of CPU, and flat's churn is only ~200ms so GCCPUFraction (a since-start cumulative) is noisy there — per-run values spanned 0.14%-0.75% (classic) and 0.06%-0.43% (green)."
+    },
+    {
+      "id": "wall_time_by_heap_shape",
+      "label": "Wall time of the churn phase (median ms) — the practical consequence",
+      "unit": "ms",
+      "cells": [
+        { "shape": "tree",  "classic_ms": 4772.6, "green_ms": 3377.3, "relative_change_pct": -29.2 },
+        { "shape": "graph", "classic_ms": 7540.0, "green_ms": 6506.4, "relative_change_pct": -13.7 },
+        { "shape": "flat",  "classic_ms": 201.9,  "green_ms": 200.8,  "relative_change_pct": -0.5 }
+      ],
+      "pattern": "The GC-CPU win converts to wall time ONLY where GC was actually a meaningful share of CPU. flat's GC overhead was already ~0.3%, so a 73% cut of it moves nothing."
+    },
+    {
+      "id": "gc_cycle_count",
+      "label": "Number of GC cycles during the measured churn (per-run values)",
+      "unit": "cycles",
+      "cells": [
+        { "shape": "tree",  "classic": [36, 35, 36, 35, 35], "green": [31, 30, 33, 31, 32] },
+        { "shape": "graph", "classic": [15, 15, 15, 15, 15], "green": [14, 14, 14, 14, 14] },
+        { "shape": "flat",  "classic": [12, 12, 12],         "green": [12, 12, 12] }
+      ],
+      "pattern": "Cycle counts are essentially unchanged (35->31, 15->14, 12->12). The saving is not 'fewer collections' — it is cheaper marking/scanning PER cycle, which is exactly what Green Tea's design targets."
+    }
+  ],
+
+  "findings": [
+    {
+      "id": "pointer_dense_heaps_win_big",
+      "claim": "On pointer-dense heaps, Green Tea cut GC CPU by 70-77% and that showed up as a 14-29% shorter run.",
+      "detail": "tree: 10.30% -> 2.38% GC CPU, 4772.6ms -> 3377.3ms wall. graph: 5.72% -> 1.72%, 7540.0ms -> 6506.4ms. Both are medians over n=5."
+    },
+    {
+      "id": "pointer_free_heaps_see_nothing",
+      "claim": "On a pointer-free heap the same toolchain change is a no-op in practice.",
+      "detail": "flat: GC CPU 0.34% -> 0.09% (a real ratio, an irrelevant magnitude) and wall time 201.9ms -> 200.8ms (-0.5%, inside noise). Green Tea improves SCANNING; with almost no pointers to scan there is nothing to improve."
+    },
+    {
+      "id": "same_cycles_cheaper_cycles",
+      "claim": "The mechanism visible here is cheaper cycles, not fewer cycles.",
+      "detail": "GC counts moved 35->31 / 15->14 / 12->12 while GC CPU fell ~3-4x. Note this is the OPPOSITE direction from DoltHub's 2025-09 report, which described per-GC CPU going UP and total GC count going DOWN (netting out to neutral) on their workload — a workload/version difference we did not reproduce or refute here."
+    },
+    {
+      "id": "micro_bench_amplifies",
+      "claim": "These percentages are larger than what a real service should expect.",
+      "detail": "The harness does nothing but allocate and drop, so GC is an outsized share of its CPU. The Go team's own guidance is 10-40% GC-overhead reduction in GC-heavy programs, with additional ~10% from vectorized scanning on newer amd64. Our -77% is the same phenomenon amplified by an extreme regime, not a promise about production."
+    },
+    {
+      "id": "opt_out_is_temporary",
+      "claim": "Green Tea is the default in Go 1.26 and the opt-out is scheduled to disappear.",
+      "detail": "Disabling is build-time only: GOEXPERIMENT=nogreenteagc. The Go 1.26 release notes state it 'is expected to be removed in Go 1.27' — i.e. this exact A/B becomes unbuildable on 1.27+."
+    }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "cross_platform", "note": "Windows/amd64 only. Linux servers, macOS, and ARM64 were NOT measured. Green Tea's vectorized scan path is amd64-specific (Ice Lake / Zen 4+); ARM64 behavior is unknown to this run." },
+    { "id": "no_avx512_baseline", "note": "Measured on a Zen 5 part WITH AVX-512, i.e. the best case for the vectorized scanner. We did not measure a pre-AVX-512 amd64 machine, so we cannot say how much of the win is vectorization vs the new scan algorithm." },
+    { "id": "pause_and_tail_latency", "note": "PauseTotalNs was recorded but is dominated by sub-10ms noise at this scale (0-9ms totals) and no pause DISTRIBUTION or tail-latency measurement was done. Claims about GC pause behavior are cited, not measured." },
+    { "id": "cgo_overhead", "note": "Go 1.26 also reports ~30% lower cgo call overhead. Out of scope — not exercised by this harness." },
+    { "id": "heap_size_and_gogc_sweep", "note": "One operating point only: ~400MB live, GOGC=100. No sweep over heap size or GOGC, so we cannot say how the win scales with heap size." },
+    { "id": "real_application", "note": "No real application was benchmarked. tile38's reported ~35% and DoltHub's reported neutral result are cited from their write-ups, not reproduced here." }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "run_id": "2026-07-19-go-126-green-tea-gc",
+  "post_slug": "go-126-green-tea-gc",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/go-126-green-tea-gc"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-19T06:30:00+09:00",
+  "operator": "curioustore",
+  "backfilled": false,
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native — no WSL, no Docker)",
+    "cpu": "AMD Ryzen 9 9950X3D (Zen 5, 16C/32T, AVX-512 present)",
+    "gomaxprocs": 32,
+    "go": "go1.26.5 windows/amd64 (official zip from go.dev, extracted to a temp GOROOT)",
+    "gogc": "100, pinned in-process via debug.SetGCPercent(100) in both builds",
+    "note": "AVX-512 is load-bearing context, not incidental: Green Tea's scan path uses vector instructions on newer amd64 (Ice Lake / Zen 4+). This machine is therefore a best case. A pre-AVX-512 amd64 or an ARM64 machine was NOT measured."
+  },
+
+  "subject": {
+    "name": "Green Tea garbage collector",
+    "version": "Go 1.26.5 (Green Tea is the DEFAULT GC as of Go 1.26, released 2026-02)",
+    "invocation": "default `go build` = Green Tea; `GOEXPERIMENT=nogreenteagc go build` = pre-1.26 classic GC",
+    "freshness_note": "The opt-out is build-time only and temporary — the Go 1.26 release notes say GOEXPERIMENT=nogreenteagc 'is expected to be removed in Go 1.27'. On Go 1.27+ this A/B is no longer buildable, so this run is only reproducible on a 1.26.x toolchain. Pin go1.26.5."
+  },
+  "baseline": [
+    { "name": "pre-1.26 classic Go GC", "invocation": "GOEXPERIMENT=nogreenteagc go build", "note": "Same source, same toolchain, same machine — the only difference is the GC implementation compiled in." }
+  ],
+
+  "why_this_experiment": {
+    "note": "Published reports disagreed. The Go team's own guidance is a 10-40% GC-overhead reduction 'in programs that heavily use the GC', tile38 reported ~35%, but DoltHub's 2025-09 experiment reported a roughly NEUTRAL result. This harness was designed to make that disagreement legible by sweeping one variable — heap POINTER DENSITY (fanout) — rather than by benchmarking one more application."
+  },
+
+  "determinism": {
+    "workload_deterministic": true,
+    "timings_deterministic": false,
+    "note": "The workload is deterministic (fixed sizes, PRNG seeded 42, GOGC pinned). GCCPUFraction and wall time are NOT — they are timing measurements on a busy desktop OS. Cell values move run to run; the flat shape moves a LOT because its churn is only ~200ms and GCCPUFraction is a since-process-start cumulative. Compare the pattern across shapes, not the digits."
+  },
+
+  "verification": {
+    "verified_at": "2026-07-24T06:40:00+09:00",
+    "method": "run.sh re-executed on the same machine in SMOKE mode (live=100MB, churn=10, n=1) with a freshly downloaded go1.26.5, to check that the packaged harness still builds both variants and reproduces the reported direction.",
+    "result": "tree reproduced the headline exactly — GC CPU 11.63% (classic) -> 2.65% (green) = -77%, matching the recorded -77%; wall time -34.9%. graph reproduced the direction at -66% GC CPU (recorded: -70%).",
+    "honest_note": "At n=1 smoke scale the two noise-dominated cells behaved exactly as the recorded run's caveats predict: flat's GC CPU SIGN FLIPPED (0.34% -> 0.66%, i.e. 'worse'), and graph's wall time came out +17% despite its GC CPU falling by two thirds — both cells run only 2 GC cycles at this scale. This is evidence FOR the caveat, not against the finding: the paper claim is about pointer-dense heaps at n=5 medians, and the one cell with enough signal (tree) reproduced to the percentage point."
+  },
+
+  "harness_provenance": {
+    "file": "harness/gcbench.go",
+    "note": "Copied verbatim from the session workspace — this is the exact file compiled on 2026-07-19. No edits. results-raw.jsonl is the unmodified stdout of all 26 recorded runs (each line is one process); results.json contains the medians computed from it, so the summary is auditable against the raw file."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "The temp GOROOT (go1.26.5 zip + extraction + build cache + binaries, ~500MB) was deleted after both the original run and the 2026-07-24 verification. Nothing else was produced.",
+    "note": "results-raw.jsonl (26 lines, 4.7KB) IS the raw evidence and is committed here in full — there is no larger dump being withheld."
+  }
+}

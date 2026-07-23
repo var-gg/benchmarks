@@ -19,6 +19,7 @@ most public benchmarks, not less.
 | Date | Run | Post | Kind |
 |---|---|---|---|
 | 2026-07-20 | [2026-07-20-biome-type-aware-linting](./runs/2026-07-20-biome-type-aware-linting/) | [KO](https://var.gg/ko/blog/biome-type-aware-linting) | capability_verification |
+| 2026-07-19 | [2026-07-19-go-126-green-tea-gc](./runs/2026-07-19-go-126-green-tea-gc/) | [KO](https://var.gg/ko/blog/go-126-green-tea-gc) | benchmark |
 | 2026-07-17 | [2026-07-17-dbos-durable-execution](./runs/2026-07-17-dbos-durable-execution/) | [KO](https://var.gg/ko/blog/dbos-durable-execution) | benchmark |
 | 2026-07-16 | [2026-07-16-polars-streaming-engine](./runs/2026-07-16-polars-streaming-engine/) | [KO](https://var.gg/ko/blog/polars-streaming-engine) | benchmark |
 | 2026-07-15 | [2026-07-15-jujutsu-jj-bisect-run](./runs/2026-07-15-jujutsu-jj-bisect-run/) | [KO](https://var.gg/ko/blog/jujutsu-jj-bisect-run) | benchmark |
