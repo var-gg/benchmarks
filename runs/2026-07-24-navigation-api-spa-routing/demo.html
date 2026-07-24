@@ -1,0 +1,141 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>navigation-api probe</title>
+<!--
+  Observation harness for the Navigation API vs the History API.
+
+  Every listener writes into sessionStorage, so the log survives cross-document
+  navigations (anchor clicks, form submits, location.assign). The driver reads it
+  back at the end of a run.
+
+  MODE=observe : listeners only, nothing is intercepted -> measures which
+                 navigation triggers each API can even SEE.
+  MODE=spa     : the navigate listener calls intercept() -> checks whether the
+                 Navigation API alone is enough to implement a client-side router.
+-->
+<body>
+<h1>navigation-api probe</h1>
+<a id="link-samedoc" href="/demo.html?p=1">same-origin link</a>
+<a id="link-crossorigin" href="">cross-origin link</a>
+<a id="link-download" href="/blob.txt" download="blob.txt">download link</a>
+<form id="form-get" action="/demo.html" method="GET"><input name="q" value="x"></form>
+<div id="outlet">initial</div>
+
+<script>
+const LOG = "navprobe.log";
+const PHASE = "navprobe.phase";
+
+function log(entry) {
+  const arr = JSON.parse(sessionStorage.getItem(LOG) || "[]");
+  entry.phase = sessionStorage.getItem(PHASE) || "?";
+  arr.push(entry);
+  sessionStorage.setItem(LOG, JSON.stringify(arr));
+}
+
+// ---- feature surface (recorded once per document load) ----
+window.__surface = function () {
+  const has = (o, k) => !!o && typeof o === "object" && k in o;
+  const n = window.navigation;
+  return {
+    navigation_object: !!n,
+    entries: !!(n && typeof n.entries === "function"),
+    navigate_method: !!(n && typeof n.navigate === "function"),
+    traverseTo: !!(n && typeof n.traverseTo === "function"),
+    updateCurrentEntry: !!(n && typeof n.updateCurrentEntry === "function"),
+    back_forward_reload: !!(n && typeof n.back === "function" && typeof n.forward === "function" && typeof n.reload === "function"),
+    currentEntry: !!(n && "currentEntry" in n),
+    activation: !!(n && "activation" in n),
+    canGoBack: !!(n && "canGoBack" in n),
+    NavigateEvent_ctor: typeof window.NavigateEvent !== "undefined",
+    NavigationHistoryEntry_ctor: typeof window.NavigationHistoryEntry !== "undefined",
+    // History API side, for contrast
+    history_pushState: typeof history.pushState === "function",
+    history_length_only: typeof history.length === "number",
+    history_can_read_stack: has(history, "entries"), // deliberately false everywhere
+  };
+};
+
+// ---- what the History API can tell you about the stack ----
+window.__stack = function () {
+  const n = window.navigation;
+  return {
+    history_length: history.length,
+    history_urls: null, // the History API exposes no way to read them
+    navigation_entries_count: n && n.entries ? n.entries().length : null,
+    navigation_entry_urls: n && n.entries
+      ? n.entries().map(e => (e.url || "").replace(location.origin, ""))
+      : null,
+    navigation_current_index: n && n.currentEntry ? n.currentEntry.index : null,
+  };
+};
+
+// ---- observers ----
+window.addEventListener("popstate", () => {
+  log({ api: "history", event: "popstate", url: location.pathname + location.search + location.hash });
+});
+window.addEventListener("hashchange", () => {
+  log({ api: "history", event: "hashchange", url: location.pathname + location.search + location.hash });
+});
+
+const MODE = new URLSearchParams(location.search).get("mode") || "observe";
+
+if (window.navigation) {
+  navigation.addEventListener("navigate", (e) => {
+    let dest = "";
+    try { dest = (e.destination.url || "").replace(location.origin, ""); } catch (_) { dest = "(opaque)"; }
+    log({
+      api: "navigation",
+      event: "navigate",
+      url: dest,
+      navigationType: e.navigationType,
+      canIntercept: e.canIntercept,
+      hashChange: e.hashChange,
+      downloadRequest: e.downloadRequest === null ? null : String(e.downloadRequest),
+      hasFormData: !!e.formData,
+      userInitiated: e.userInitiated,
+    });
+    if (MODE === "spa" && e.canIntercept && !e.hashChange && e.downloadRequest === null) {
+      e.intercept({
+        handler() {
+          document.getElementById("outlet").textContent =
+            "rendered by navigate.intercept(): " + dest;
+          log({ api: "navigation", event: "intercept.handler-ran", url: dest });
+        },
+      });
+    }
+  });
+}
+
+// ---- triggers, driven one at a time from the test driver ----
+window.__trigger = function (name, arg) {
+  sessionStorage.setItem(PHASE, name);
+  switch (name) {
+    case "pushState":      history.pushState({ n: 1 }, "", "/demo.html?push=1"); return "sync";
+    case "replaceState":   history.replaceState({ n: 2 }, "", "/demo.html?replace=1"); return "sync";
+    case "hash":           location.hash = "#frag"; return "sync";
+    case "back":           history.back(); return "async";
+    // Fair comparison for the History API: a SAME-DOCUMENT back, which is the one
+    // case popstate was actually designed for. Without this the table would be
+    // measuring "listeners lost on document unload", not an API limitation.
+    case "back_after_push":
+      history.pushState({ n: 3 }, "", "/demo.html?pushed=1");
+      setTimeout(() => history.back(), 50);
+      return "async";
+    case "nav_navigate":   if (!window.navigation) return "unsupported";
+                           navigation.navigate("/demo.html?navapi=1"); return "async";
+    case "anchor_click":   document.getElementById("link-samedoc").click(); return "async";
+    case "form_get":       document.getElementById("form-get").submit(); return "async";
+    case "location_assign":location.assign("/demo.html?assign=1"); return "async";
+    case "crossorigin": {
+      const a = document.getElementById("link-crossorigin");
+      a.href = arg; a.click(); return "async";
+    }
+    case "download":       document.getElementById("link-download").click(); return "async";
+    default: return "unknown";
+  }
+};
+
+window.__readLog  = () => JSON.parse(sessionStorage.getItem(LOG) || "[]");
+window.__clearLog = () => { sessionStorage.setItem(LOG, "[]"); sessionStorage.setItem(PHASE, "-"); };
+</script>
+</body>

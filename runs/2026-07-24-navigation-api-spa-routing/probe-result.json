@@ -1,0 +1,985 @@
+{
+  "measured_at": "2026-07-24",
+  "origins": {
+    "same_origin": "http://127.0.0.1:62565",
+    "cross_origin": "http://localhost:62566",
+    "note": "127.0.0.1 vs localhost on different ports = genuinely different origins"
+  },
+  "engines": [
+    {
+      "engine": "chromium",
+      "version": "147.0.7727.15",
+      "surface": {
+        "navigation_object": true,
+        "entries": true,
+        "navigate_method": true,
+        "traverseTo": true,
+        "updateCurrentEntry": true,
+        "back_forward_reload": true,
+        "currentEntry": true,
+        "activation": true,
+        "canGoBack": true,
+        "NavigateEvent_ctor": true,
+        "NavigationHistoryEntry_ctor": true,
+        "history_pushState": true,
+        "history_length_only": true,
+        "history_can_read_stack": false
+      },
+      "triggers": [
+        {
+          "trigger": "pushState",
+          "meaning": "programmatic history.pushState (what every SPA router calls)",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?push=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "pushState"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "replaceState",
+          "meaning": "programmatic history.replaceState",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?replace=1",
+              "navigationType": "replace",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "replaceState"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "replace",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "hash",
+          "meaning": "fragment navigation (location.hash = '#frag')",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html#frag",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": true,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "hash"
+            },
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            },
+            {
+              "api": "history",
+              "event": "hashchange",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 1,
+          "navigate": 1,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": true,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "back",
+          "meaning": "user pressed Back across documents (traverse)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html#frag",
+              "navigationType": "traverse",
+              "canIntercept": false,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "traverse",
+          "canIntercept": false,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "back_after_push",
+          "meaning": "user pressed Back within one document (the case popstate was designed for)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?pushed=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back_after_push"
+            },
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html",
+              "navigationType": "traverse",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back_after_push"
+            },
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html",
+              "phase": "back_after_push"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 0,
+          "navigate": 2,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "nav_navigate",
+          "meaning": "navigation.navigate() — the new programmatic API",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?navapi=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "nav_navigate"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "anchor_click",
+          "meaning": "user clicked a same-origin <a>",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?p=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "anchor_click"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "form_get",
+          "meaning": "a GET form was submitted",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?q=x",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "form_get"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "location_assign",
+          "meaning": "location.assign() to a same-origin URL",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?assign=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "location_assign"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "crossorigin",
+          "meaning": "user clicked a CROSS-ORIGIN link",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "http://localhost:62566/demo.html",
+              "navigationType": "push",
+              "canIntercept": false,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "crossorigin"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": false,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "download",
+          "meaning": "user clicked a <a download> link",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/blob.txt",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": "blob.txt",
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "download"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": "blob.txt",
+          "hasFormData": false
+        }
+      ],
+      "stack_after_3_pushes": {
+        "history_length": 5,
+        "history_urls": null,
+        "navigation_entries_count": 4,
+        "navigation_entry_urls": [
+          "/demo.html",
+          "/demo.html?a=1",
+          "/demo.html?b=2",
+          "/demo.html?c=3"
+        ],
+        "navigation_current_index": 3
+      },
+      "spa_intercept": {
+        "supported": true,
+        "outlet_before": "initial",
+        "outlet_after": "rendered by navigate.intercept(): /demo.html?p=1",
+        "url_after": "/demo.html?p=1",
+        "handler_ran": true,
+        "full_page_reload_avoided": true
+      }
+    },
+    {
+      "engine": "firefox",
+      "version": "148.0.2",
+      "surface": {
+        "navigation_object": true,
+        "entries": true,
+        "navigate_method": true,
+        "traverseTo": true,
+        "updateCurrentEntry": true,
+        "back_forward_reload": true,
+        "currentEntry": true,
+        "activation": true,
+        "canGoBack": true,
+        "NavigateEvent_ctor": true,
+        "NavigationHistoryEntry_ctor": true,
+        "history_pushState": true,
+        "history_length_only": true,
+        "history_can_read_stack": false
+      },
+      "triggers": [
+        {
+          "trigger": "pushState",
+          "meaning": "programmatic history.pushState (what every SPA router calls)",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?push=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "pushState"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "replaceState",
+          "meaning": "programmatic history.replaceState",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?replace=1",
+              "navigationType": "replace",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "replaceState"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "replace",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "hash",
+          "meaning": "fragment navigation (location.hash = '#frag')",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html#frag",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": true,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "hash"
+            },
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            },
+            {
+              "api": "history",
+              "event": "hashchange",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 1,
+          "navigate": 1,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": true,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "back",
+          "meaning": "user pressed Back across documents (traverse)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html#frag",
+              "navigationType": "traverse",
+              "canIntercept": false,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "traverse",
+          "canIntercept": false,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "back_after_push",
+          "meaning": "user pressed Back within one document (the case popstate was designed for)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?pushed=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back_after_push"
+            },
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html",
+              "navigationType": "traverse",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "back_after_push"
+            },
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html",
+              "phase": "back_after_push"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 0,
+          "navigate": 2,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "nav_navigate",
+          "meaning": "navigation.navigate() — the new programmatic API",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?navapi=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "nav_navigate"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "anchor_click",
+          "meaning": "user clicked a same-origin <a>",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?p=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "anchor_click"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "form_get",
+          "meaning": "a GET form was submitted",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?q=x",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": true,
+              "phase": "form_get"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "location_assign",
+          "meaning": "location.assign() to a same-origin URL",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/demo.html?assign=1",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "location_assign"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "crossorigin",
+          "meaning": "user clicked a CROSS-ORIGIN link",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "http://localhost:62566/demo.html",
+              "navigationType": "push",
+              "canIntercept": false,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "crossorigin"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 1,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": false,
+          "hashChange": false,
+          "downloadRequest": null,
+          "hasFormData": false
+        },
+        {
+          "trigger": "download",
+          "meaning": "user clicked a <a download> link",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/blob.txt",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": "blob.txt",
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "download"
+            },
+            {
+              "api": "navigation",
+              "event": "navigate",
+              "url": "/blob.txt",
+              "navigationType": "push",
+              "canIntercept": true,
+              "hashChange": false,
+              "downloadRequest": null,
+              "hasFormData": false,
+              "userInitiated": false,
+              "phase": "download"
+            }
+          ],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 2,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": true,
+          "navigationType": "push",
+          "canIntercept": true,
+          "hashChange": false,
+          "downloadRequest": "blob.txt",
+          "hasFormData": false
+        }
+      ],
+      "stack_after_3_pushes": {
+        "history_length": 4,
+        "history_urls": null,
+        "navigation_entries_count": 4,
+        "navigation_entry_urls": [
+          "/demo.html",
+          "/demo.html?a=1",
+          "/demo.html?b=2",
+          "/demo.html?c=3"
+        ],
+        "navigation_current_index": 3
+      },
+      "spa_intercept": {
+        "supported": true,
+        "outlet_before": "initial",
+        "outlet_after": "rendered by navigate.intercept(): /demo.html?p=1",
+        "url_after": "/demo.html?p=1",
+        "handler_ran": true,
+        "full_page_reload_avoided": true
+      }
+    },
+    {
+      "engine": "webkit",
+      "version": "26.4",
+      "surface": {
+        "navigation_object": false,
+        "entries": false,
+        "navigate_method": false,
+        "traverseTo": false,
+        "updateCurrentEntry": false,
+        "back_forward_reload": false,
+        "currentEntry": false,
+        "activation": false,
+        "canGoBack": false,
+        "NavigateEvent_ctor": false,
+        "NavigationHistoryEntry_ctor": false,
+        "history_pushState": true,
+        "history_length_only": true,
+        "history_can_read_stack": false
+      },
+      "triggers": [
+        {
+          "trigger": "pushState",
+          "meaning": "programmatic history.pushState (what every SPA router calls)",
+          "dispatch": "sync",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "replaceState",
+          "meaning": "programmatic history.replaceState",
+          "dispatch": "sync",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "hash",
+          "meaning": "fragment navigation (location.hash = '#frag')",
+          "dispatch": "sync",
+          "log": [
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            },
+            {
+              "api": "history",
+              "event": "hashchange",
+              "url": "/demo.html#frag",
+              "phase": "hash"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 1,
+          "navigate": 0,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "back",
+          "meaning": "user pressed Back across documents (traverse)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html#frag",
+              "phase": "back"
+            },
+            {
+              "api": "history",
+              "event": "hashchange",
+              "url": "/demo.html#frag",
+              "phase": "back"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 1,
+          "navigate": 0,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "back_after_push",
+          "meaning": "user pressed Back within one document (the case popstate was designed for)",
+          "dispatch": "async",
+          "log": [
+            {
+              "api": "history",
+              "event": "popstate",
+              "url": "/demo.html",
+              "phase": "back_after_push"
+            }
+          ],
+          "popstate": 1,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": true,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "nav_navigate",
+          "meaning": "navigation.navigate() — the new programmatic API",
+          "dispatch": "unsupported",
+          "skipped": "navigation object not available in this engine"
+        },
+        {
+          "trigger": "anchor_click",
+          "meaning": "user clicked a same-origin <a>",
+          "dispatch": "async",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "form_get",
+          "meaning": "a GET form was submitted",
+          "dispatch": "async",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "location_assign",
+          "meaning": "location.assign() to a same-origin URL",
+          "dispatch": "async",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "crossorigin",
+          "meaning": "user clicked a CROSS-ORIGIN link",
+          "dispatch": "async",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        },
+        {
+          "trigger": "download",
+          "meaning": "user clicked a <a download> link",
+          "dispatch": "async",
+          "log": [],
+          "popstate": 0,
+          "hashchange": 0,
+          "navigate": 0,
+          "history_api_saw_it": false,
+          "navigation_api_saw_it": false
+        }
+      ],
+      "stack_after_3_pushes": {
+        "history_length": 5,
+        "history_urls": null,
+        "navigation_entries_count": null,
+        "navigation_entry_urls": null,
+        "navigation_current_index": null
+      },
+      "spa_intercept": {
+        "supported": false
+      }
+    }
+  ]
+}

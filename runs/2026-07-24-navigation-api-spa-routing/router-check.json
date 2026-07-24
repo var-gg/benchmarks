@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-07-24",
+  "question": "Do the mainstream React routers use the Navigation API yet?",
+  "method": "npm pack the published packages, extract, grep the shipped dist for window.navigation / NavigateEvent / navigation.addEventListener, and for popstate.",
+  "packages": [
+    {
+      "name": "react-router",
+      "version": "8.3.0",
+      "navigation_api_hits": 0,
+      "popstate_listener": true,
+      "evidence_file": "dist/production/lib/router/history.js"
+    },
+    {
+      "name": "@tanstack/history",
+      "version": "1.162.0",
+      "navigation_api_hits": 0,
+      "popstate_listener": true,
+      "evidence_file": "dist/esm/index.js"
+    }
+  ],
+  "conclusion": "Neither shipped package references the Navigation API at all as of 2026-07-24; both still listen to popstate and call pushState."
+}

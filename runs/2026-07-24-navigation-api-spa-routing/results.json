@@ -1,0 +1,65 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies which navigation events each engine fires and what each history API can read — not timing. No statistical distribution applies: event firing is a deterministic boolean per trigger, and stack readouts are deterministic per engine build. Source of truth: probe-result.json (per-engine) and router-check.json (npm dist grep).",
+
+  "observation_matrix": {
+    "question": "For 11 navigation triggers, which triggers does each API observe?",
+    "engines_agree": "chromium 147.0.7727.15 and firefox 148.0.2 produced identical results",
+    "source_of_truth": "probe-result.json -> engines[].triggers",
+    "history_api_saw": {
+      "count": "2 of 11",
+      "triggers": ["fragment (location.hash)", "back within one document (after pushState)"],
+      "note": "popstate does NOT fire on pushState/replaceState, on programmatic navigation, on same-origin link clicks, on GET form submit, on location.assign(), or on cross-origin/download navigations."
+    },
+    "navigation_api_saw": {
+      "count": "11 of 11",
+      "note": "The navigate event fires for every trigger, with navigationType (push/replace/traverse) and canIntercept exposed."
+    },
+    "canIntercept_false_cases": ["cross-origin link (canIntercept=false)", "download link (downloadRequest=\"blob.txt\")"],
+    "canIntercept_special": "fragment navigation reports hashChange=true"
+  },
+
+  "stack_visibility": {
+    "question": "After 3 pushState calls in a clean context, what can each API tell you about session history?",
+    "source_of_truth": "probe-result.json -> engines[].stack_after_3_pushes",
+    "history_api": "Only history.length — a single integer, and engines even disagree on it (chromium 5, firefox 4). No way to read the URL list or inspect a non-current entry.",
+    "navigation_api": "navigation.entries() returns the full URL array (/demo.html, ?a=1, ?b=2, ?c=3) plus currentEntry.index (3) on chromium and firefox. Absent on webkit."
+  },
+
+  "spa_intercept_verified": {
+    "claim": "A navigate + intercept() handler renders a new view and updates the URL with zero framework — SPA routing from one event listener.",
+    "verified_on": ["chromium 147.0.7727.15", "firefox 148.0.2"],
+    "evidence": "probe-result.json -> engines[].spa_intercept",
+    "observed": "handler_ran=true, full_page_reload_avoided=true, #outlet text replaced and URL updated to ?p=1"
+  },
+
+  "webkit_absence": {
+    "observed": "Playwright WebKit 26.4 exposes no window.navigation at all (entries, navigate, traverseTo, NavigateEvent all false). The navigate event fired 0 times; only fragment and Back were observed there via popstate/hashchange.",
+    "caveat": "This is a real observation about the Playwright WebKit build, NOT a verdict on Safari. Playwright's WebKit != Safari; caniuse lists Safari 26.2+ as supporting the API and we did NOT measure real Safari. Practical implication: teams running Playwright WebKit E2E will see a Navigation-API router silently fall back there."
+  },
+
+  "router_adoption": {
+    "question": "Do the mainstream React routers use the Navigation API yet?",
+    "checked_at": "2026-07-24",
+    "method": "npm pack the published packages, extract, grep shipped dist for window.navigation / NavigateEvent, and for popstate.",
+    "source_of_truth": "router-check.json",
+    "results": [
+      { "package": "react-router", "version": "8.3.0", "navigation_api_hits": 0, "still_uses_popstate": true },
+      { "package": "@tanstack/history", "version": "1.162.0", "navigation_api_hits": 0, "still_uses_popstate": true }
+    ],
+    "conclusion": "As of 2026-07-24, neither shipped package references the Navigation API; both still listen to popstate and call pushState."
+  },
+
+  "not_measured": {
+    "real_safari": "Playwright WebKit != Safari. Safari behavior is cited, never presented as firsthand.",
+    "real_user_browsers": "Headless automation only. Extensions, restored sessions, and bfcache may behave differently.",
+    "unmeasured_surfaces": "scroll/focus restoration, bfcache, intercept() precommitHandler/commit options, POST forms, and traverseTo() in real use were not exercised.",
+    "history_length_discrepancy": "history.length split 5 (chromium) vs 4 (firefox); likely initial about:blank counting, root cause not investigated.",
+    "router_grep_scope": "Published dist only. Unreleased branches, experimental flags, and open PRs were not inspected."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Navigation API reached Baseline 'newly available' in January 2026.", "source": "web.dev / MDN Baseline" },
+    { "claim": "Support: Chrome/Edge 102+, Firefox 147+, Safari desktop/iOS 26.2+; global coverage ~87.37%.", "source": "caniuse", "url": "https://caniuse.com/mdn-api_navigation" }
+  ]
+}

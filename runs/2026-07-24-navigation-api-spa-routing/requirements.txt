@@ -1,0 +1,4 @@
+# Pinned so the engine builds under test are reproducible.
+# playwright 1.59.0 ships Chromium 147.0.7727.15, Firefox 148.0.2, and WebKit 26.4
+# (the three engines in manifest.json.subject.engines).
+playwright==1.59.0
