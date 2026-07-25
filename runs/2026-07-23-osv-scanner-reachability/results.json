@@ -1,0 +1,51 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies whether OSV-Scanner's Go reachability (call analysis) suppresses a High-severity alert when the vulnerable symbol is imported but never called — not timing. No statistical distribution applies: for a fixed source + pinned dependency + pinned advisory, the alert verdict and the called boolean are deterministic. Source of truth: probe-result.json.",
+
+  "fixture": {
+    "vulnerable_dependency": "golang.org/x/text@v0.3.7",
+    "advisory": "GO-2022-1059 / GHSA-69ch-w2m2-3vjp / CVE-2022-32149 (CVSS 7.5 High)",
+    "vulnerable_symbol": "golang.org/x/text/language.ParseAcceptLanguage",
+    "design": "reachable/ and unreachable/ share the identical dependency and advisory; only the called function differs (ParseAcceptLanguage vs language.Make)."
+  },
+
+  "alert_matrix": {
+    "question": "For two modules with the identical vulnerable dependency, does each scan mode report the vuln?",
+    "source_of_truth": "probe-result.json",
+    "columns": ["--no-call-analysis=go (naive lockfile match)", "--call-analysis=go (default reachability)", "experimental_analysis.called"],
+    "reachable_calls_vulnerable_symbol": {
+      "naive": "1 High (GO-2022-1059)",
+      "reachability": "1 High (shown)",
+      "called": true
+    },
+    "unreachable_imports_only": {
+      "naive": "1 High (GO-2022-1059) — REPRODUCED FALSE POSITIVE",
+      "reachability": "0 (suppressed)",
+      "called": false
+    },
+    "key_finding": "Naive matching gives BOTH modules the same High alert; the unreachable one is a reproduced false positive. Reachability keeps the alert only where ParseAcceptLanguage is actually reachable from main (called:true, 1 shown) and filters it to zero where it is not (called:false, 0 shown)."
+  },
+
+  "demotion_not_deletion": {
+    "claim": "Suppressed findings are demoted, not deleted — audit trail is preserved.",
+    "observed": "Adding --all-vulns re-surfaces the filtered GO-2022-1059 under an 'Uncalled vulnerabilities' section rather than dropping it silently."
+  },
+
+  "tradeoff_observed": {
+    "claim": "Reachability is not free — it needs more than a lockfile.",
+    "observed": "--call-analysis=go required the Go toolchain on PATH and a buildable module; osv-scanner runs the build to construct the call graph ('Will run build scripts'). --no-call-analysis=go worked from go.mod alone.",
+    "implication": "Reachability cannot run from an SBOM/lockfile in isolation; it raises CI cost and environment requirements."
+  },
+
+  "not_measured": {
+    "dynamic_dispatch": "reflection / dynamic dispatch / cgo can evade a static call graph, so reachability can produce false negatives. Cited from govulncheck docs, NOT exercised here.",
+    "package_level_advisories": "Advisories with no affected-symbol (whole-package) cannot be filtered per-function and are always reported. Cited, not exercised.",
+    "language_coverage": "osv-scanner reachability currently supports Go and Rust only. This run measured Go only.",
+    "speed": "No timing was measured; this is a deterministic alert/called verdict, not a speed benchmark."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Go reachability is powered by govulncheck's call-graph analysis.", "source": "OSV-Scanner docs / govulncheck" },
+    { "claim": "GO-2022-1059 = CVE-2022-32149: DoS via crafted Accept-Language in golang.org/x/text < 0.3.8.", "source": "OSV / GitHub Advisory Database", "url": "https://osv.dev/vulnerability/GO-2022-1059" }
+  ]
+}

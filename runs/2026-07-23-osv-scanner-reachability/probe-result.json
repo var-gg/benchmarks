@@ -1,0 +1,30 @@
+{
+  "osv_scanner_version": "2.4.0",
+  "go_version": "go1.25.5",
+  "vulnerable_dependency": "golang.org/x/text@v0.3.7",
+  "advisory": {
+    "osv": "GO-2022-1059",
+    "ghsa": "GHSA-69ch-w2m2-3vjp",
+    "cve": "CVE-2022-32149",
+    "severity_cvss": 7.5,
+    "vulnerable_symbol": "golang.org/x/text/language.ParseAcceptLanguage",
+    "fixed_version": "0.3.8"
+  },
+  "reachable_variant": {
+    "description": "main() calls language.ParseAcceptLanguage (the vulnerable symbol)",
+    "calls_vulnerable_symbol": true,
+    "naive_no_call_analysis_reported": true,
+    "call_analysis_default_reported": true,
+    "experimental_analysis_called": true
+  },
+  "unreachable_variant": {
+    "description": "same golang.org/x/text@v0.3.7 in the module graph, but main() calls only language.Make",
+    "calls_vulnerable_symbol": false,
+    "naive_no_call_analysis_reported": true,
+    "call_analysis_default_reported": false,
+    "experimental_analysis_called": false,
+    "revealed_under_all_vulns_section": "Uncalled vulnerabilities"
+  },
+  "key_finding": "Identical dependency (golang.org/x/text@v0.3.7) and identical advisory (GO-2022-1059 / CVE-2022-32149). Naive lockfile matching (--no-call-analysis=go) reports the SAME High vuln for BOTH variants; call-graph reachability (--call-analysis=go, default for Go) keeps it only where ParseAcceptLanguage is actually called (called:true, 1 shown) and filters it to zero where it is not (called:false, 0 shown). --all-vulns re-surfaces the filtered one under an 'Uncalled vulnerabilities' section — demoted, not deleted.",
+  "tradeoff_observed": "call-analysis=go required the Go toolchain on PATH and a buildable module — osv-scanner runs the build to construct the call graph. --no-call-analysis=go worked from go.mod alone."
+}

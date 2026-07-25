@@ -1,0 +1,48 @@
+{
+  "run_id": "2026-07-23-osv-scanner-reachability",
+  "post_slug": "osv-scanner-reachability",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/osv-scanner-reachability"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-21T06:50:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64",
+    "runner": "native (no Docker)",
+    "note": "This checks whether OSV-Scanner's Go call-graph reachability suppresses a vulnerability alert when the vulnerable symbol is never called — a deterministic pass/fail observation (alert present/absent + a called boolean), not a timing benchmark. CPU/GPU/RAM do not affect the result, so they are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "OSV-Scanner reachability (Go call analysis)",
+    "version": "2.4.0",
+    "install": "GitHub release binary osv-scanner v2.4.0 (2026-06-18)",
+    "toolchain": { "name": "go", "version": "1.25.5" },
+    "note": "osv-scanner v2.4.0 pinned; Go 1.25.5 installed to a temp dir. call-analysis=go is the default for Go modules."
+  },
+  "baseline": {
+    "name": "Naive lockfile matching (--no-call-analysis=go)",
+    "note": "Reachability is compared against the naive dependency-graph match it refines: same two modules are scanned both ways in the same run, and the comparison is by observed alert presence, not by measured timing."
+  },
+
+  "fixture": {
+    "vulnerable_dependency": "golang.org/x/text@v0.3.7",
+    "advisory": {
+      "osv": "GO-2022-1059",
+      "ghsa": "GHSA-69ch-w2m2-3vjp",
+      "cve": "CVE-2022-32149",
+      "severity_cvss": 7.5,
+      "vulnerable_symbol": "golang.org/x/text/language.ParseAcceptLanguage",
+      "fixed_version": "0.3.8"
+    },
+    "design": "Two Go modules import the IDENTICAL vulnerable dependency (x/text v0.3.7) and differ only in which function they call: reachable/ calls the flagged ParseAcceptLanguage; unreachable/ calls only language.Make."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "The deterministic evidence — probe-result.json (the 2x2 alert matrix plus the experimental_analysis.called boolean for GO-2022-1059) — is committed alongside the two fixture modules. No large raw artifacts are produced."
+  }
+}
