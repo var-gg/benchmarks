@@ -1,0 +1,59 @@
+{
+  "run_id": "2026-07-24-systemd-261-init-system-scope",
+  "post_slug": "systemd-261-init-system-scope",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/systemd-261-init-system-scope"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-24T06:45:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64",
+    "runner": "Docker 29.4.3 (Linux containers)",
+    "note": "This is a distro-availability / feature-presence check, not a timing benchmark. Each query is a version string or a file-presence boolean, so it is deterministic and hardware-independent; CPU/GPU/RAM are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "systemd",
+    "version": "261",
+    "upstream_release_date": "2026-06-19",
+    "source": "github.com/systemd/systemd tag v261 NEWS",
+    "note": "Upstream tag v261 (codename Edinburgh). The probes measure how far this release has propagated into distro container images."
+  },
+  "baseline": {
+    "name": "distro-packaged systemd",
+    "note": "The gap between upstream v261 and what each distro packages TODAY (Arch rolling vs Fedora/Debian/Ubuntu stable) is the finding. Compared by packaged version, not by measured timing."
+  },
+
+  "images_probed": [
+    "archlinux:latest",
+    "fedora:latest",
+    "ubuntu:24.04",
+    "debian:trixie-slim"
+  ],
+  "received_images": [
+    "archlinux:latest",
+    "fedora:latest",
+    "ubuntu:24.04",
+    "debian:trixie-slim"
+  ],
+  "image_pin_caveat": "Images were pulled at :latest / :24.04 / :trixie-slim on 2026-07-24. These tags are mutable — re-running later will pull whatever those distros ship at that time, which is exactly the drift the probe measures. The committed probe-*-result.json is the 2026-07-24 snapshot.",
+
+  "tool": {
+    "name": "docker",
+    "version": "29.4.3",
+    "harness": "bash (probe.sh + probe-pkg.sh)"
+  },
+
+  "measurement_bias_correction": {
+    "note": "probe.sh asked `systemctl --version` inside minimal base images. fedora/ubuntu/debian minimal images do not INSTALL systemd, so systemctl was absent — that says nothing about the packaged version. probe-pkg.sh corrects this by asking each distro's package manager directly (pacman/dnf/apt) what systemd version it packages right now."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "Deterministic evidence (version strings + binary-presence booleans) lives in probe-result.json and probe-pkg-result.json. No large raw artifacts are produced. The four container images pulled to run the probes were removed after the run (received_images), per ownership-based cleanup; run.sh re-pulls them."
+  }
+}

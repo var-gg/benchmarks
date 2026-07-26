@@ -1,0 +1,30 @@
+{
+  "probe": "systemd-261-distro-gap",
+  "measured_at": "2026-07-24",
+  "upstream_release": {"version": "261", "date": "2026-06-19", "source": "github.com/systemd/systemd tag v261 NEWS"},
+  "distros": [
+    {
+      "image": "archlinux:latest",
+      "systemctl_version": "systemd 261 (261.1-1-arch)",
+      "present": { "systemctl": true, "systemd-imdsd": true, "systemd-imds": true, "systemd-sysinstall": true, "storagectl": true, "systemd-repart": true, "bootctl": true, "systemd-tpm2-swtpm.service": true }
+    }
+    ,
+    {
+      "image": "fedora:latest",
+      "systemctl_version": "(no systemd / query failed)",
+      "present": { "systemctl": false, "systemd-imdsd": false, "systemd-imds": false, "systemd-sysinstall": false, "storagectl": false, "systemd-repart": false, "bootctl": false, "systemd-tpm2-swtpm.service": false }
+    }
+    ,
+    {
+      "image": "ubuntu:24.04",
+      "systemctl_version": "(no systemd / query failed)",
+      "present": { "systemctl": false, "systemd-imdsd": false, "systemd-imds": false, "systemd-sysinstall": false, "storagectl": false, "systemd-repart": false, "bootctl": false, "systemd-tpm2-swtpm.service": false }
+    }
+    ,
+    {
+      "image": "debian:trixie-slim",
+      "systemctl_version": "(no systemd / query failed)",
+      "present": { "systemctl": false, "systemd-imdsd": false, "systemd-imds": false, "systemd-sysinstall": false, "storagectl": false, "systemd-repart": false, "bootctl": false, "systemd-tpm2-swtpm.service": false }
+    }
+  ]
+}

@@ -19,6 +19,7 @@ most public benchmarks, not less.
 | Date | Run | Post | Kind |
 |---|---|---|---|
 | 2026-07-24 | [2026-07-24-navigation-api-spa-routing](./runs/2026-07-24-navigation-api-spa-routing/) | [KO](https://var.gg/ko/blog/navigation-api-spa-routing) | capability_verification |
+| 2026-07-24 | [2026-07-24-systemd-261-init-system-scope](./runs/2026-07-24-systemd-261-init-system-scope/) | [KO](https://var.gg/ko/blog/systemd-261-init-system-scope) | capability_verification |
 | 2026-07-23 | [2026-07-23-osv-scanner-reachability](./runs/2026-07-23-osv-scanner-reachability/) | [KO](https://var.gg/ko/blog/osv-scanner-reachability) | capability_verification |
 | 2026-07-20 | [2026-07-20-biome-type-aware-linting](./runs/2026-07-20-biome-type-aware-linting/) | [KO](https://var.gg/ko/blog/biome-type-aware-linting) | capability_verification |
 | 2026-07-19 | [2026-07-19-go-126-green-tea-gc](./runs/2026-07-19-go-126-green-tea-gc/) | [KO](https://var.gg/ko/blog/go-126-green-tea-gc) | benchmark |

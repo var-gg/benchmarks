@@ -1,0 +1,30 @@
+{
+  "probe": "systemd-261-packaged-version-by-distro",
+  "measured_at": "2026-07-24",
+  "question": "What systemd version does each distro package right now, per its own package manager?",
+  "distros": [
+    {
+      "image": "archlinux:latest",
+      "channel": "rolling",
+      "packaged_systemd": "systemd 261.1-1"
+    }
+    ,
+    {
+      "image": "fedora:latest",
+      "channel": "stable",
+      "packaged_systemd": "259.7"
+    }
+    ,
+    {
+      "image": "ubuntu:24.04",
+      "channel": "LTS-stable",
+      "packaged_systemd": "255.4-1ubuntu8.16"
+    }
+    ,
+    {
+      "image": "debian:trixie-slim",
+      "channel": "stable",
+      "packaged_systemd": "257.13-1~deb13u1"
+    }
+  ]
+}

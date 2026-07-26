@@ -1,0 +1,65 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies (1) which distro container images ship the systemd 261 binaries, and (2) which systemd version each distro packages right now. Deterministic: version strings + file-presence booleans, no timing. No statistical distribution applies. Sources of truth: probe-result.json + probe-pkg-result.json.",
+  "measured_at": "2026-07-24",
+
+  "upstream": {
+    "version": "261",
+    "release_date": "2026-06-19",
+    "source": "github.com/systemd/systemd tag v261 NEWS",
+    "new_surface_cited_from_news": [
+      "systemd-imdsd (local Varlink IPC API exposing IMDS to local programs)",
+      "systemd-imds (client that imports IMDS fields into system credentials)",
+      "systemd-sysinstall (textual OS installer wrapping repart + bootctl + creds)",
+      "storagectl + io.systemd.StorageProvider Varlink interface",
+      "systemd-tpm2-swtpm.service (software TPM fallback via IBM swtpm)",
+      "dlopen()-based linking for all external libs except libc",
+      "LUO/Kexec Handover, ConditionFraction=, ConditionMachineTag=, BPF LSM RestrictFileSystemAccess="
+    ]
+  },
+
+  "binary_presence_matrix": {
+    "method": "docker run <image> then `command -v` / check /usr/lib/systemd for each binary; unit-file presence for the .service",
+    "source_of_truth": "probe-result.json",
+    "note": "fedora/ubuntu/debian rows are all-false because those minimal container images do not install systemd at all (see packaged_version_matrix for the real per-distro version). Only archlinux:latest ships systemd as PID1-capable in its base image.",
+    "rows": {
+      "archlinux:latest": {
+        "systemctl_version": "systemd 261 (261.1-1-arch)",
+        "systemctl": true,
+        "systemd-imdsd": true,
+        "systemd-imds": true,
+        "systemd-sysinstall": true,
+        "storagectl": true,
+        "systemd-repart": true,
+        "bootctl": true,
+        "systemd-tpm2-swtpm.service": true
+      },
+      "fedora:latest": { "systemd_installed_in_image": false },
+      "ubuntu:24.04": { "systemd_installed_in_image": false },
+      "debian:trixie-slim": { "systemd_installed_in_image": false }
+    }
+  },
+
+  "packaged_version_matrix": {
+    "method": "ask each distro package manager directly (pacman -Q / rpm -q|dnf info / apt-cache policy) — does not require systemd to run as PID1",
+    "source_of_truth": "probe-pkg-result.json",
+    "rows": [
+      { "distro": "Arch",           "channel": "rolling",    "packaged_systemd": "261.1-1",              "delta_vs_upstream_261": 0 },
+      { "distro": "Fedora",         "channel": "stable",     "packaged_systemd": "259.7",                "delta_vs_upstream_261": -2 },
+      { "distro": "Debian trixie",  "channel": "stable",     "packaged_systemd": "257.13-1~deb13u1",     "delta_vs_upstream_261": -4 },
+      { "distro": "Ubuntu 24.04",   "channel": "LTS-stable", "packaged_systemd": "255.4-1ubuntu8.16",    "delta_vs_upstream_261": -6 }
+    ],
+    "finding": "systemd 261 released upstream 2026-06-19. Five weeks later (2026-07-24) only the rolling distro (Arch) actually packages it. LTS (Ubuntu 24.04) is six minor versions behind. The new storage/IMDS/OS-install surface is in the hands of rolling-release users only; 'systemd swallowed OS install' as a headline is separate from 'you can use it on your server today'."
+  },
+
+  "not_measured": {
+    "runtime_behavior": "Binary presence != working feature. Confirmed storagectl/systemd-imdsd exist as files on Arch, but NOT that they fetch cloud IMDS or install an OS end-to-end (container PID1 + no cloud metadata).",
+    "software_tpm_luo_bpf": "systemd-tpm2-swtpm.service, LUO/Kexec Handover, and BPF LSM policy verified only to unit-file / source presence, runtime untested.",
+    "distro_representativeness": "Container images (archlinux:latest, ubuntu:24.04, ...) are the stable-channel default snapshot, not the whole distro. Backports/PPA/rawhide may be newer."
+  },
+
+  "cited_not_measured": [
+    { "claim": "v261 codename Edinburgh, released 2026-06-19.", "source": "github.com/systemd/systemd tag v261 NEWS" },
+    { "claim": "The full list of new v261 binaries/services and dlopen migration.", "source": "systemd v261 NEWS (upstream)" }
+  ]
+}
