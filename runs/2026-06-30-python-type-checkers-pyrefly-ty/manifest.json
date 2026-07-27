@@ -1,0 +1,36 @@
+{
+  "run_id": "2026-06-30-python-type-checkers-pyrefly-ty",
+  "post_slug": "python-type-checkers-pyrefly-ty",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/python-type-checkers-pyrefly-ty"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-30T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "Run executed on 2026-06-30, before this repo existed; the tool binaries and synthetic bench artifacts were deleted per the finite-disk policy (only firsthand-benchmark.md text was preserved). fixture/*, gen_codebase.py, bench_run.py, and run.sh are RECONSTRUCTED from the recorded methodology so a third party can reproduce the METHOD. results.json holds the judgments + timings measured on 2026-06-30 on one Windows PC — re-running today will drift (newer tool versions, different hardware). See drift_warning.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "python": "CPython 3.13.13 (uv-managed, isolated venv)",
+    "node": "v24.15.0 (for pyright via npx)",
+    "uv": "0.11.14",
+    "note": "All four checkers were run with DEFAULT settings unless a fixture note says otherwise. Timing is machine-dependent; the cold-vs-warm shape and the cross-tool ratio are the portable signals, not absolute seconds on this specific PC."
+  },
+
+  "subjects": [
+    { "name": "mypy",    "version": "2.1.0",   "vendor": "python/mypy",       "impl": "Python (compiled)", "install": "uv pip install mypy==2.1.0",   "note": "2.0 released 2026-05-06." },
+    { "name": "pyright", "version": "1.1.411", "vendor": "Microsoft",          "impl": "TypeScript/Node",   "install": "npx pyright@1.1.411",          "note": "CLI has no incremental cache; Pylance (IDE) is a resident server so CLI numbers != editor feel." },
+    { "name": "pyrefly", "version": "1.1.1",   "vendor": "Meta",               "impl": "Rust",              "install": "uv pip install pyrefly==1.1.1", "note": "Pyre successor. 1.0 = 2026-05, monthly cadence — version WILL have moved past 1.1.1." },
+    { "name": "ty",      "version": "0.0.55",  "vendor": "Astral (Ruff/uv)",   "impl": "Rust",              "install": "uv pip install ty==0.0.55",     "build": "42869400d (2026-06-26)", "note": "BETA. Part of ty's speed comes from rules not yet implemented (no strict mode). Fast-moving 0.0.x — version WILL differ." }
+  ],
+
+  "drift_warning": "ty (beta, monthly) and pyrefly (monthly) move fast; the exact versions here are gone. The DURABLE claims are structural: (1) unannotated params make all four skip a body bug and only mypy warns it skipped; (2) mypy widens reveal_type, the others preserve Literal; (3) Rust checkers are ~15-30x faster COLD while mypy's warm (incremental cache) is Rust-class; (4) pyright CLI re-analyzes every run. Exact per-fixture diagnostics and seconds are a 2026-06-30 snapshot.",
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk, predates this repo)",
+    "note": "Tool binaries + the 2000-module synthetic codebase were deleted after the run; no hashes were captured at the time. Reconstructed harness is committed instead — stated plainly rather than fabricating hashes."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-06-30",
+  "note": "Two experiments on one Windows PC. Experiment A = same code, four verdicts (default settings). Experiment B = speed on a 2000-module / 70,012-line synthetic clean codebase. Numbers are a 2026-06-30 snapshot; ty/pyrefly versions have since moved (monthly cadence). The structural findings are the durable claims, not exact seconds.",
+
+  "experiment_a_verdicts": {
+    "description": "6 fixtures, four checkers, ALL default settings. Cell = errors reported.",
+    "columns": ["mypy 2.1.0", "pyright(basic) 1.1.411", "pyrefly 1.1.1", "ty 0.0.55"],
+    "rows": [
+      { "fixture": "01_baseline.py",        "intent": "3 obvious type mismatches",         "mypy": "3", "pyright": "3", "pyrefly": "3", "ty": "3" },
+      { "fixture": "02_untyped_def.py",     "intent": "bug inside an unannotated function", "mypy": "0 (+note: bodies of untyped functions not checked)", "pyright": "0 (silent)", "pyrefly": "0 (silent)", "ty": "0 (silent)" },
+      { "fixture": "03_optional.py",        "intent": "2 None-member accesses",             "mypy": "2", "pyright": "2", "pyrefly": "2", "ty": "2" },
+      { "fixture": "04_reveal.py",          "intent": "reveal_type inference precision",    "mypy": "tuple[int, str] (widened)", "pyright": "tuple[Literal[1], Literal['two']]", "pyrefly": "Literal preserved", "ty": "Literal preserved" },
+      { "fixture": "04_reveal.py (import)", "intent": "reveal_type not imported",            "mypy": "ignored", "pyright": "ignored", "pyrefly": "diagnostic (runtime-fail warning)", "ty": "diagnostic" },
+      { "fixture": "05_match_exhaustive.py","intent": "missing case -> assert_never",        "mypy": "1", "pyright": "1 (+ 'type alias 3.12+' warning)", "pyrefly": "1", "ty": "1" },
+      { "fixture": "06_unreachable.py",     "intent": "dead code / missing return",          "mypy": "0 (silent)", "pyright": "0 (silent)", "pyrefly": "1 (missing return)", "ty": "0 (silent)" }
+    ]
+  },
+
+  "experiment_b_speed": {
+    "description": "Synthetic codebase: 2000 modules, 70,012 lines, all type-clean. cold = first run, warm = immediate re-run. Median of 3. Wall time.",
+    "unit": "s",
+    "rows": [
+      { "tool": "ty 0.0.55",      "cold": 0.19, "warm": 0.19, "note": "Rust; fastest. 70k lines in 0.19s." },
+      { "tool": "pyrefly 1.1.1",  "cold": 0.24, "warm": 0.23, "note": "Rust." },
+      { "tool": "mypy 2.1.0",     "cold": 3.24, "warm": 0.27, "note": "First run builds .mypy_cache; warm (incremental) is Rust-class." },
+      { "tool": "pyright 1.1.411","cold": 5.92, "warm": 5.90, "note": "CLI has no incremental cache; ~1-2s node startup included every run." }
+    ],
+    "ratios": {
+      "cold_ty_vs_mypy": 17.1,
+      "cold_ty_vs_pyright": 31.2,
+      "desc": "Rust tools ~15-30x faster COLD. mypy warm (0.27s) is Rust-class — its 'slow' reputation is mostly the cold path, which CI usually hits."
+    }
+  },
+
+  "findings": [
+    { "id": "untyped_param_blindspot", "claim": "An unannotated parameter makes all four checkers skip a plain body bug; only mypy tells you it skipped.", "detail": "def parse(raw): with raw.upper() assigned to an int passes ALL FOUR at default. Unannotated param = Unknown/Any -> body uncheckable. mypy emits 'By default the bodies of untyped functions are not checked, consider using --check-untyped-defs'. The other three are silent. Adding raw: str -> int makes ALL FOUR immediately flag the bug — proof that checker silence means 'you gave me nothing to check', not 'the code is correct'." },
+    { "id": "reveal_widening", "claim": "mypy widens reveal_type; the other three preserve Literal.", "detail": "reveal_type((1, 'two')) -> mypy 2.1 shows tuple[int, str] (widened); pyright + the two Rust tools show tuple[Literal[1], Literal['two']]." },
+    { "id": "rust_pedantry", "claim": "pyrefly/ty flag reveal_type used without import; mypy/pyright stay silent.", "detail": "A bare reveal_type(...) not imported from typing draws a runtime-failure diagnostic from pyrefly and ty; mypy and pyright treat it as special-form and say nothing." },
+    { "id": "pyright_conservative_default", "claim": "pyright without a pinned venv treats PEP 695 'type X = ...' as requiring 3.12+.", "detail": "Runs at a conservative default target version; adding pythonVersion 3.13 to pyrightconfig.json removes the warning. Environment not stated => conservative default." },
+    { "id": "pyrefly_config_footgun", "claim": "pyrefly with no config runs to '0 errors' + exit 0 WITHOUT actually checking.", "detail": "pyrefly check <files> with no pyrefly.toml prints '0 errors' and exit 0, plus a 'Run pyrefly init' hint — it did not check. Config must exist before real checking starts. Broken code can look clean." },
+    { "id": "mypy_2_parallel_not_rewrite", "claim": "mypy 2.0's answer to speed is parallelism, not a Rust rewrite.", "detail": "--num-workers N (8 workers ~5x). mypy chose to shrink the cold path rather than rewrite in Rust." }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "typing_conformance", "note": "Typing-spec conformance ordering (pyright/Zuban > pyrefly >90% > mypy > ty) is cited from public conformance data, NOT measured by this run. Cited, not measured." },
+    { "id": "real_world_heavy_generics", "note": "The speed bench is a uniform, shallow-typed synthetic codebase. Heavy generics/overloads/metaclasses load each tool differently; those were not measured. ty's speed is also partly unimplemented rules (beta) — discount accordingly." }
+  ]
+}
