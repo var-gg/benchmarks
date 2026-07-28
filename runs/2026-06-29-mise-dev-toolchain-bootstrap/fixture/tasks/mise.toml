@@ -1,0 +1,17 @@
+# Reconstructed fixture for experiment 4 (task runner + depends).
+#
+# Method:
+#   mise trust
+#   mise run build
+# Expect: greet runs BEFORE build because build depends on it, then build runs.
+# No make / Taskfile required.
+
+[tools]
+node = "22"
+
+[tasks.greet]
+run = "echo 'hello from greet'"
+
+[tasks.build]
+depends = ["greet"]
+run = "echo 'building after greet'"

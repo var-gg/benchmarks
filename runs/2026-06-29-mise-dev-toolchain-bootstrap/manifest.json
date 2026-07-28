@@ -1,0 +1,36 @@
+{
+  "run_id": "2026-06-29-mise-dev-toolchain-bootstrap",
+  "post_slug": "mise-dev-toolchain-bootstrap",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/mise-dev-toolchain-bootstrap"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-29T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "Run executed on 2026-06-29 on one Windows 11 PC, before this repo existed. Per the finite-disk policy only firsthand-benchmark.md text was preserved; the mise standalone binary, the installed toolchains (node/jq/gh), and the isolated MISE_DATA_DIR were discarded. The fixture/*.toml configs, run.sh, and probe.sh here are RECONSTRUCTED from the recorded methodology so a third party can reproduce the METHOD. results.json holds the behavioral judgments + timings measured on 2026-06-29 with mise v2026.6.14 — re-running today drifts (mise ships ~monthly; tool versions move). See drift_warning.",
+
+  "kind": "mixed",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "shell": "Git Bash",
+    "mise": "v2026.6.14 (windows-x64 standalone exe, 2026-06-25 release)",
+    "isolation": "MISE_DATA_DIR / MISE_CACHE_DIR / MISE_STATE_DIR all redirected under tmp/firsthand-mise-dev-toolchain-bootstrap/ so the user home was never polluted",
+    "note": "Timing is machine-dependent; the cold-vs-warm SHAPE and the ratios are the portable signals, not absolute milliseconds on this specific PC. Behavioral observations (trust gate, shim fallback, lockfile contents, supply-chain verification tiers) are the durable claims."
+  },
+
+  "subjects": [
+    { "name": "mise",   "version": "v2026.6.14", "vendor": "jdx",             "impl": "Rust (standalone exe)", "install": "download mise.exe (windows-x64) from GitHub releases", "note": "Standalone exe does NOT bundle mise-shim.exe, so it falls back to 'file' shim mode on Windows. Scoop/winget installs ship mise-shim.exe and get 'exe' shim mode." },
+    { "name": "node",   "version": "22.23.1",    "vendor": "core plugin",     "impl": "downloaded runtime",    "install": "mise use node@22", "note": "Cold install subject for experiments 1/2/7/8." },
+    { "name": "jq",      "version": "1.7.1",      "vendor": "aqua:jqlang/jq",  "impl": "aqua backend",          "install": "mise use aqua:jqlang/jq@1.7.1", "note": "aqua config = checksum-only (sha256sum.txt from the same release). Integrity, not provenance." },
+    { "name": "gh",      "version": "2.62.0",     "vendor": "aqua:cli/cli",    "impl": "aqua backend",          "install": "mise use aqua:cli/cli@2.62.0", "note": "aqua config has GitHub artifact attestation -> mise verifies provenance via mise-versions.jdx.dev API, then checksum." }
+  ],
+
+  "drift_warning": "mise ships ~monthly; v2026.6.14 and the exact seconds here are already gone. The DURABLE claims are behavioral/structural: (1) an untrusted mise.toml is REFUSED at parse time (TOFU trust gate) until `mise trust`; (2) the standalone exe falls back to 'file' shim mode (mise-shim.exe absent) so shims depend on mise being on PATH; (3) mise.lock, when enabled, records cross-platform sha256 + URL per (os,arch), not just a version string, and is OFF by default; (4) supply-chain verification comes in tiers (core lock sha256 / aqua checksum-only / aqua attestation) with DIFFERENT guarantees; (5) warm reinstall is idempotent (near-zero) and the file-shim adds a small per-call overhead. Exact ms and the node/jq/gh patch versions are a 2026-06-29 snapshot.",
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk, predates this repo; Docker/images never used)",
+    "note": "mise.exe, the installed node/jq/gh toolchains, and the isolated MISE_DATA_DIR were deleted after the run; no binary hashes were captured at the time. Reconstructed configs + harness are committed instead — stated plainly rather than fabricating hashes."
+  }
+}

@@ -1,0 +1,20 @@
+# Reconstructed fixture for experiment 2 (lockfile = cross-platform binary lock).
+#
+# Method:
+#   1. Note that mise.lock is NOT auto-created by default.
+#   2. Enable it, then create an empty lock, then install:
+#        mise settings set lockfile true      # or: export MISE_LOCKFILE=1
+#        : > mise.lock                         # empty file so mise populates it
+#        mise trust
+#        mise use node@22
+#   3. Inspect mise.lock -> it now holds sha256 + download URL for EVERY
+#      (os, arch) target, not just the version string below.
+#
+# The durable claim: the reproducibility unit is a per-platform binary checksum,
+# so a Windows dev and a Linux CI verify the same node by hash. But OFF by default.
+
+[settings]
+lockfile = true
+
+[tools]
+node = "22"

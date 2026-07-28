@@ -1,0 +1,45 @@
+{
+  "kind": "mixed",
+  "measured_at": "2026-06-29",
+  "note": "mise v2026.6.14 on one Windows 11 PC, all toolchain state isolated to a tmp MISE_DATA_DIR. Two flavors of evidence: a behavioral matrix (what mise did in each scenario) and a small set of timings. Timings are a 2026-06-29 snapshot; the durable claims are the behaviors, not the milliseconds. mise ships ~monthly so versions have since moved.",
+
+  "behavioral_matrix": {
+    "description": "Each row is one scenario run against mise v2026.6.14 with an isolated MISE_DATA_DIR. 'observed' is what actually happened; 'meaning' is the durable claim.",
+    "rows": [
+      { "id": "T",  "scenario": "trust gate", "observed": "An untrusted mise.toml with an [env] block made `mise env` REFUSE to parse: 'Config files ... are not trusted. Trust them with `mise trust`.' After `mise trust`, the [env] block loaded.", "meaning": "TOFU (trust-on-first-use) security model: a cloned repo's config cannot silently inject PATH/env. Trust is an explicit gate before any config-driven mutation." },
+      { "id": "2",  "scenario": "lockfile contents", "observed": "Lockfile is OFF by default (no mise.lock auto-created). After setting lockfile=1 and creating an empty mise.lock, `mise use node@22` wrote per-platform sha256 + download URL for every (os,arch) target into mise.lock.", "meaning": "Reproducibility unit is a cross-platform BINARY checksum, not a version string. A Windows dev and a Linux CI resolve the same lock to their own verified, identical-by-hash binary. But it is OFF unless you opt in." },
+      { "id": "3",  "scenario": "Windows shim mode", "observed": "On `mise install` the standalone exe printed 'mise-shim.exe not found ... falling back to \"file\" shim mode'. shims/.mode = 'file'. Each shim is a bash script + a .cmd twin whose body is `mise x -- node %*`.", "meaning": "The standalone exe does not bundle the compiled mise-shim.exe, so it falls back to file shims that re-spawn mise every call -> shims only work while mise itself is on PATH. Scoop/winget installs ship the exe shim." },
+      { "id": "4",  "scenario": "task runner + depends", "observed": "`mise run build` with [tasks.build] depends=[\"greet\"] executed greet -> build in order (95.5 ms total).", "meaning": "A dependency-aware task runner is built in; no make/Taskfile needed for simple pipelines." },
+      { "id": "5",  "scenario": "directory-scoped env / _.path", "observed": "After trust, [env] APP_ENV=firsthand plus _.path=[\"./bin\"] made `mise env` export APP_ENV and prepend ./bin to PATH.", "meaning": "direnv-style directory-scoped env + PATH shaping, gated behind the same trust model as T." },
+      { "id": "6a", "scenario": "aqua install, checksum-only (jq)", "observed": "`mise use aqua:jqlang/jq@1.7.1` downloaded the release sha256sum.txt and verified the checksum. No cosign / no attestation step.", "meaning": "jq's aqua config is checksum-only: it guarantees the bytes match the published checksum, but the checksum ships FROM THE SAME RELEASE, so a fully-compromised upstream could publish a matching bad pair. Integrity, not provenance." },
+      { "id": "6b", "scenario": "aqua install, attestation (gh)", "observed": "`mise use aqua:cli/cli@2.62.0` ran [1] download, [2] verify GitHub artifact attestations (success, queried via mise-versions.jdx.dev/api/github/repos/cli/cli/attestations/sha256:...), [3] checksum, [4] extract.", "meaning": "Tools with an attestation config get PROVENANCE (who built it, how) verified, which is stronger than checksum-only. Caveat: the attestation lookup goes through mise's OWN API, so you trade some trust to mise's infrastructure." },
+      { "id": "9",  "scenario": "doc domain check", "observed": "Both mise.jdx.dev (200) and mise.en.dev (200) respond. The v2026.6.14 binary emits mise.en.dev in its trust-error / lockfile comments; the scout-cited canonical is mise.jdx.dev.", "meaning": "A domain in the tool's own output (mise.en.dev) that differs from the doc canonical (mise.jdx.dev) is real, not a hallucination — both resolve. Noted so the post's URLs are not 'corrected' to a single domain by mistake." }
+    ]
+  },
+
+  "timings": {
+    "description": "Wall time on the one Windows PC. Machine-dependent; the cold-vs-warm shape and the shim delta are the portable signals, not absolute ms.",
+    "unit": "ms",
+    "rows": [
+      { "id": "1", "label": "cold install node@22", "value": 3287, "note": "Single command; installed node v22.23.1 from scratch." },
+      { "id": "7", "label": "warm reinstall node@22 (already installed)", "value": 110, "note": "Idempotent; re-run cost ~= 0 vs the 3287 ms cold path." },
+      { "id": "8a", "label": "raw node.exe invocation", "value": 76, "note": "Baseline: call the resolved node binary directly." },
+      { "id": "8b", "label": "mise exec -- node invocation", "value": 90, "note": "file-shim path re-spawns `mise x`; ~+14 ms per call over raw." }
+    ]
+  },
+
+  "findings": [
+    { "id": "trust_tofu", "claim": "An untrusted mise.toml is refused at parse time until `mise trust`.", "detail": "Because config can rewrite PATH/env, mise gates it behind trust-on-first-use. `mise env` on an untrusted config errors ('Config files ... are not trusted') instead of silently loading it. This blocks a freshly-cloned repo from injecting env the instant you cd into it." },
+    { "id": "lockfile_is_binary_lock", "claim": "mise.lock pins cross-platform binary checksums, not just version strings — and it is OFF by default.", "detail": "With lockfile=1 and an existing mise.lock, `mise use node@22` records sha256 + URL for each (os,arch). Two machines on different OSes resolve the same lock to their own hash-verified, identical binary. Forget to enable it and you get 'same version, possibly different binary'." },
+    { "id": "windows_file_shim_fallback", "claim": "The standalone mise.exe falls back to 'file' shim mode because mise-shim.exe is absent, so shims depend on mise being on PATH.", "detail": "The exe shim (compiled mise-shim.exe copied per tool) is the default/recommended mode, but the bare standalone exe does not ship it. File shims (.cmd + bash pair calling `mise x`) re-spawn mise every invocation and break if mise leaves PATH. Scoop/winget installs include mise-shim.exe and use exe mode." },
+    { "id": "supply_chain_three_tiers", "claim": "'mise verifies downloads' means three different things with three different guarantees.", "detail": "core lockfile sha256 (integrity of a pinned binary) / aqua checksum-only e.g. jq (bytes match a checksum from the same release — integrity, not provenance) / aqua attestation e.g. gh (GitHub build provenance verified, stronger — but the lookup routes through mise's own API). Do not read 'verified' as uniform." },
+    { "id": "idempotent_reinstall", "claim": "Reinstalling an already-installed tool is near-free.", "detail": "Warm `mise use node@22` = 110 ms vs 3287 ms cold, so putting `mise install` in a shell hook / CI step is cheap on the common path." },
+    { "id": "file_shim_overhead", "claim": "The file-shim adds a small per-call cost.", "detail": "raw node.exe 76 ms vs `mise exec -- node` 90 ms (~+14 ms) from the `mise x` re-spawn. Negligible for interactive use, worth knowing for tight inner loops that shell out per iteration." }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "exe_shim_mode", "note": "The exe shim mode (via Scoop/winget with mise-shim.exe present) was NOT run here — only the file-shim fallback of the standalone exe was measured. The exe-mode behavior is described from mise docs, cited not measured." },
+    { "id": "non_windows", "note": "Everything was measured on Windows 11 only. macOS/Linux activate (shell hook) mode, which the post mentions as more capable there, was not measured on this run." },
+    { "id": "upstream_compromise", "note": "The checksum-only vs attestation guarantee difference is reasoned from what each backend verifies; no actual upstream-compromise attack was staged. It is a threat-model argument, not an exploited PoC." }
+  ]
+}

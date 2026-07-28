@@ -1,0 +1,20 @@
+# Reconstructed fixture for experiments 6a (checksum-only) and 6b (attestation).
+#
+# Method:
+#   mise trust
+#   mise install
+# Watch the install logs per tool:
+#   - aqua:jqlang/jq@1.7.1  -> downloads the release sha256sum.txt and verifies
+#     the CHECKSUM only. No cosign / no attestation. (experiment 6a)
+#   - aqua:cli/cli@2.62.0   -> [1] download [2] VERIFY GitHub artifact attestations
+#     (provenance, queried via mise-versions.jdx.dev/api/github/.../attestations/...)
+#     [3] checksum [4] extract. (experiment 6b)
+#
+# The durable claim: "mise verifies downloads" is not uniform.
+#   checksum-only = integrity (bytes match a checksum shipped by the same release)
+#   attestation   = provenance (who built it / how) — stronger, but the lookup
+#                   routes through mise's own API.
+
+[tools]
+"aqua:jqlang/jq" = "1.7.1"
+"aqua:cli/cli"   = "2.62.0"

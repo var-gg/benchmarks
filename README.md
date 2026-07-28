@@ -34,6 +34,7 @@ most public benchmarks, not less.
 | 2026-07-07 | [2026-07-07-wasmtime-46-wasi-sandbox](./runs/2026-07-07-wasmtime-46-wasi-sandbox/) | [KO](https://var.gg/ko/blog/wasmtime-46-wasi-sandbox) | capability_verification (backfill) |
 | 2026-07-06 | [2026-07-06-valkey-91-redis-alternative](./runs/2026-07-06-valkey-91-redis-alternative/) | [KO](https://var.gg/ko/blog/valkey-91-redis-alternative) | benchmark (backfill) |
 | 2026-06-30 | [2026-06-30-python-type-checkers-pyrefly-ty](./runs/2026-06-30-python-type-checkers-pyrefly-ty/) | [KO](https://var.gg/ko/blog/python-type-checkers-pyrefly-ty) | benchmark (backfill) |
+| 2026-06-29 | [2026-06-29-mise-dev-toolchain-bootstrap](./runs/2026-06-29-mise-dev-toolchain-bootstrap/) | [KO](https://var.gg/ko/blog/mise-dev-toolchain-bootstrap) | mixed (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |

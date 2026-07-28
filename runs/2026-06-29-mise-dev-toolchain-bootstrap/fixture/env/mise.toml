@@ -1,0 +1,14 @@
+# Reconstructed fixture for experiments T (trust gate) and 5 (directory-scoped env).
+#
+# Method:
+#   1. Drop this file into a fresh dir you have NOT trusted yet.
+#   2. `mise env`  -> expect a REFUSAL: "Config files ... are not trusted.
+#      Trust them with `mise trust`." (experiment T)
+#   3. `mise trust`
+#   4. `mise env`  -> now exports APP_ENV and prepends ./bin to PATH. (experiment 5)
+#
+# The point of T: a cloned repo cannot silently mutate your PATH/env. Trust first.
+
+[env]
+APP_ENV = "firsthand"
+_.path = ["./bin"]
