@@ -1,0 +1,62 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies the '2026-07-28 MCP spec goes stateless' changelog claims against the protocol's own machine-readable schema.json, symbol by symbol. For a fixed pair of committed/pinned schema revisions the verdict is deterministic: a $defs symbol is either present or absent. Source of truth: probe-result.json.",
+
+  "compared": {
+    "old": "2025-11-25 (frozen stable revision)",
+    "new": "draft (2026-07-28 release-candidate snapshot, fetched 2026-07-27)",
+    "old_defs_count": 145,
+    "new_defs_count": 154
+  },
+
+  "assertion_summary": {
+    "total": 20,
+    "passed": 20,
+    "all_passed": true,
+    "meaning": "Every one of the 20 changelog claims tied to a concrete JSON-RPC type matched the schema: the REMOVED types are gone from draft and the ADDED types are present."
+  },
+
+  "removed_verified": {
+    "claim": "Statelessness + session teardown: the handshake and session-scoped RPCs are removed.",
+    "symbols": [
+      "InitializeRequest / InitializedNotification (initialize handshake removed, SEP-2575)",
+      "PingRequest (ping removed)",
+      "SetLevelRequest (logging/setLevel removed; logLevel now per-request _meta)",
+      "SubscribeRequest / UnsubscribeRequest (resources/subscribe replaced by subscriptions/listen)",
+      "RootsListChangedNotification (notifications/roots/list_changed removed)",
+      "ServerRequest (server-initiated requests replaced by MRTR, SEP-2322)",
+      "CreateTaskResult / ListTasksRequest / GetTaskRequest / Task (Tasks moved from core to the io.modelcontextprotocol/tasks extension, SEP-2663)"
+    ],
+    "full_list": "probe-result.json -> removed_defs (32 symbols total)"
+  },
+
+  "added_verified": {
+    "claim": "New stateless machinery: up-front discovery, cacheable results, single subscription stream, multi round-trip requests, explicit error types.",
+    "symbols": [
+      "DiscoverRequest / DiscoverResult (server/discover, up-front version negotiation, SEP-2575)",
+      "CacheableResult (ttlMs / cacheScope cacheability, SEP-2549)",
+      "SubscriptionsListenRequest (single subscriptions/listen stream, SEP-2575)",
+      "InputRequiredResult / ResultType (Multi Round-Trip Requests, SEP-2322)",
+      "UnsupportedProtocolVersionError (version mismatch, SEP-2575)",
+      "HeaderMismatchError (Mcp-Method / Mcp-Name header enforcement, SEP-2243)"
+    ],
+    "full_list": "probe-result.json -> added_defs (41 symbols total)"
+  },
+
+  "not_measured": {
+    "runtime_interop": "Schema presence/absence is NOT runtime behavior. That InitializeRequest disappeared from the schema is verified; that real servers/SDKs actually interoperate handshake-free end-to-end is NOT exercised here (SDK Tier-1 support is cited).",
+    "auth_hardening": "RFC 9207 iss validation and other auth hardening: confirmed to exist in the doc/schema only, runtime not exercised.",
+    "mcp_apps_sandbox": "MCP Apps sandbox iframe: doc/schema existence only.",
+    "governance": "Deprecation-window governance: doc existence only.",
+    "performance": "Claims about running behind a round-robin load balancer and tools/list caching are the spec's design intent, cited — NOT a load measurement."
+  },
+
+  "honest_limit": {
+    "moving_target": "The draft schema is mutable. schema/draft/schema.json kept changing until the 2026-07-28 publish, and after publish 'draft' advances to the next revision. The committed probe-result.json is the 2026-07-27 snapshot; re-fetching via run.sh pulls whatever draft is current, so the draft-axis symbol set may differ. That drift is expected and is itself part of the point. The 2025-11-25 axis is frozen and reproducible."
+  },
+
+  "cited_not_measured": [
+    { "claim": "The 2026-07-28 RC locked 2026-05-21 and published 2026-07-28.", "source": "MCP blog: The 2026-07-28 MCP Specification Release Candidate", "url": "https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/" },
+    { "claim": "Per-SEP rationale (SEP-2575 statelessness, SEP-2322 MRTR, SEP-2663 Tasks-as-extension, SEP-2549 cacheability, SEP-2243 header enforcement).", "source": "MCP specification/draft changelog", "url": "https://modelcontextprotocol.io/specification/draft/changelog" }
+  ]
+}

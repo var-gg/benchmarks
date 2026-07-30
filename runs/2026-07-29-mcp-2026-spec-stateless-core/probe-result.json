@@ -1,0 +1,353 @@
+{
+  "probe": "mcp-2026-07-28-schema-statelessness",
+  "measured_at": "2026-07-27",
+  "note": "Draft schema is a snapshot of the 2026-07-28 release candidate. The 'draft' path is mutable; re-fetching later pulls whatever is current. Committed schema-draft.json is the 2026-07-27 snapshot.",
+  "compared": {
+    "old": "2025-11-25",
+    "new": "draft (2026-07-28 RC)",
+    "old_defs_count": 145,
+    "new_defs_count": 154
+  },
+  "assertions_total": 20,
+  "assertions_passed": 20,
+  "all_passed": true,
+  "checks": [
+    {
+      "symbol": "InitializeRequest",
+      "claim": "initialize handshake removed (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "InitializedNotification",
+      "claim": "notifications/initialized removed (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "PingRequest",
+      "claim": "ping removed (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "SetLevelRequest",
+      "claim": "logging/setLevel removed; logLevel now per-request _meta",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "SubscribeRequest",
+      "claim": "resources/subscribe replaced by subscriptions/listen",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "UnsubscribeRequest",
+      "claim": "resources/unsubscribe replaced by subscriptions/listen",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "RootsListChangedNotification",
+      "claim": "notifications/roots/list_changed removed",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "ServerRequest",
+      "claim": "server-initiated requests replaced by MRTR (SEP-2322)",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "CreateTaskResult",
+      "claim": "Tasks moved to io.modelcontextprotocol/tasks extension (SEP-2663)",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "ListTasksRequest",
+      "claim": "tasks/list removed; Tasks now an extension",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "GetTaskRequest",
+      "claim": "core task RPCs moved to extension",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "Task",
+      "claim": "core Task type moved to extension",
+      "expected": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "observed": {
+        "in_2025_11_25": true,
+        "in_draft": false
+      },
+      "pass": true
+    },
+    {
+      "symbol": "DiscoverRequest",
+      "claim": "server/discover added for up-front version negotiation (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "DiscoverResult",
+      "claim": "server/discover result added (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "CacheableResult",
+      "claim": "ttlMs/cacheScope cacheability added (SEP-2549)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "SubscriptionsListenRequest",
+      "claim": "single subscriptions/listen stream added (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "InputRequiredResult",
+      "claim": "Multi Round-Trip Requests result added (SEP-2322)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "ResultType",
+      "claim": "required resultType field added (SEP-2322)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "UnsupportedProtocolVersionError",
+      "claim": "version-mismatch error added (SEP-2575)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    },
+    {
+      "symbol": "HeaderMismatchError",
+      "claim": "Mcp-Method/Mcp-Name header enforcement error (SEP-2243)",
+      "expected": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "observed": {
+        "in_2025_11_25": false,
+        "in_draft": true
+      },
+      "pass": true
+    }
+  ],
+  "removed_defs": [
+    "CancelTaskRequest",
+    "CancelTaskResult",
+    "CreateTaskResult",
+    "ElicitationCompleteNotification",
+    "GetTaskPayloadRequest",
+    "GetTaskPayloadResult",
+    "GetTaskRequest",
+    "GetTaskResult",
+    "InitializeRequest",
+    "InitializeRequestParams",
+    "InitializeResult",
+    "InitializedNotification",
+    "ListTasksRequest",
+    "ListTasksResult",
+    "PingRequest",
+    "RelatedTaskMetadata",
+    "RootsListChangedNotification",
+    "ServerRequest",
+    "SetLevelRequest",
+    "SetLevelRequestParams",
+    "SubscribeRequest",
+    "SubscribeRequestParams",
+    "Task",
+    "TaskAugmentedRequestParams",
+    "TaskMetadata",
+    "TaskStatus",
+    "TaskStatusNotification",
+    "TaskStatusNotificationParams",
+    "ToolExecution",
+    "URLElicitationRequiredError",
+    "UnsubscribeRequest",
+    "UnsubscribeRequestParams"
+  ],
+  "added_defs": [
+    "CacheableResult",
+    "CallToolResultResponse",
+    "CompleteResultResponse",
+    "DiscoverRequest",
+    "DiscoverResult",
+    "DiscoverResultResponse",
+    "GetPromptResultResponse",
+    "HeaderMismatchError",
+    "InputRequest",
+    "InputRequests",
+    "InputRequiredResult",
+    "InputResponse",
+    "InputResponseRequestParams",
+    "InputResponses",
+    "InternalError",
+    "InvalidParamsError",
+    "InvalidRequestError",
+    "JSONArray",
+    "JSONObject",
+    "JSONValue",
+    "ListPromptsResultResponse",
+    "ListResourceTemplatesResultResponse",
+    "ListResourcesResultResponse",
+    "ListToolsResultResponse",
+    "MetaObject",
+    "MethodNotFoundError",
+    "MissingRequiredClientCapabilityError",
+    "NotificationMetaObject",
+    "ParseError",
+    "ReadResourceResultResponse",
+    "RequestMetaObject",
+    "ResultMetaObject",
+    "ResultType",
+    "SubscriptionFilter",
+    "SubscriptionsAcknowledgedNotification",
+    "SubscriptionsAcknowledgedNotificationParams",
+    "SubscriptionsListenRequest",
+    "SubscriptionsListenRequestParams",
+    "SubscriptionsListenResult",
+    "SubscriptionsListenResultMeta",
+    "UnsupportedProtocolVersionError"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "run_id": "2026-07-29-mcp-2026-spec-stateless-core",
+  "post_slug": "mcp-2026-spec-stateless-core",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/mcp-2026-spec-stateless-core"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-07-27T06:50:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64",
+    "runner": "native (no Docker)",
+    "python": "3.11",
+    "note": "The probe compares two published MCP schema.json revisions and asserts, symbol by symbol, that the JSON-RPC types the changelog says were REMOVED are absent and the ones it says were ADDED are present. This is a deterministic $defs-membership check — no timing, no model interpretation — so CPU/GPU/RAM do not affect the result and are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "Model Context Protocol specification — 2025-11-25 stable vs the 2026-07-28 release-candidate draft",
+    "version": "draft (2026-07-28 RC), compared against 2025-11-25",
+    "source": "modelcontextprotocol/modelcontextprotocol schema/2025-11-25/schema.json and schema/draft/schema.json (GitHub raw)",
+    "toolchain": { "name": "python", "version": "3.11", "deps": "stdlib only (urllib + json)" },
+    "note": "The 2025-11-25 axis is a frozen, published revision. The draft axis is a mutable snapshot taken 2026-07-27 (one day before the RC's 2026-07-28 publish)."
+  },
+  "baseline": {
+    "name": "2025-11-25 stable revision",
+    "note": "The previous stable protocol revision. The comparison is by observed schema symbol presence/absence, tying each changelog claim to a concrete $defs symbol."
+  },
+
+  "fixture": {
+    "compared": ["schema/2025-11-25/schema.json", "schema/draft/schema.json"],
+    "assertions": 20,
+    "design": "20 assertions each map a changelog claim (statelessness: initialize/ping/setLevel/subscribe removed; Tasks moved to an extension; server/discover, cacheable results, subscriptions/listen, MRTR, new error types added) to a specific $defs symbol expected to be present in exactly one of the two revisions."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "schema snapshots NOT committed — schema-2025-11-25.json (174 KB) + schema-draft.json (180 KB) exceed the repo's 100 KB per-run size budget, and the draft is a moving target. run.sh re-fetches both from GitHub raw.",
+    "note": "The deterministic evidence — probe-result.json (20/20 assertion matrix + the full removed_defs/added_defs lists) — is committed. Re-running run.sh fetches the CURRENT draft, so the draft-axis symbols may drift from the 2026-07-27 snapshot; that drift is expected and is part of the finding (see the honest-limits section). The 2025-11-25 axis is frozen and stable."
+  }
+}
