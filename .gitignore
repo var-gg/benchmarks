@@ -18,6 +18,7 @@ render-*.png
 
 # Reproduction scratch
 .venv/
+.node/
 __pycache__/
 node_modules/
 target/

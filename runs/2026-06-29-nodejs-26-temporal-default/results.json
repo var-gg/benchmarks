@@ -1,0 +1,77 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies Node 26 language/runtime behavior, not timing. No statistical distribution applies: each row is a deterministic pass/fail observation on the pinned v26.4.0 build. Source of truth is probe-result.json (fresh output of exp.mjs on v26.4.0).",
+
+  "runtime": {
+    "node": "26.4.0",
+    "v8": "14.6.202.34-node.21",
+    "undici": "8.5.0",
+    "uv": "1.52.1",
+    "NODE_MODULE_VERSION": 147
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "temporal_default_global",
+      "claim": "Temporal is exposed as a top-level global with NO flag on Node 26.",
+      "evidence": "probe-result.json.temporal_global",
+      "value": true
+    },
+    {
+      "id": "month_indexing",
+      "claim": "Legacy Date months are 0-based (arg 6 -> July); Temporal.PlainDate months are 1-based (month:7 -> 2026-07-29).",
+      "evidence": "probe-result.json.month_indexing",
+      "value": { "date_getMonth_of_arg_6": 6, "date_month_is": "July", "temporal_month_7": "2026-07-29" }
+    },
+    {
+      "id": "immutability",
+      "claim": "Date.setMonth mutates the original in place; PlainDate.add returns a NEW value and leaves the original untouched.",
+      "evidence": "probe-result.json.mutability",
+      "value": { "date_2026-07-29_becomes": "2026-08-29 (same object)", "plaindate_original_preserved": true, "plaindate_add_new": "2026-08-29" }
+    },
+    {
+      "id": "dst_arithmetic",
+      "claim": "Across the America/New_York 2026-03-08 spring-forward, ZonedDateTime.add({days:1}) keeps the wall clock (12:00), while add({hours:24}) and legacy ms math both land at 13:00 — calendar intent and physical duration diverge.",
+      "evidence": "probe-result.json.dst",
+      "value": { "plus_calendar_day_hour": 12, "plus_physical_24h_hour": 13, "legacy_date_plus_24h_ny_hour": 13, "diverge": true }
+    },
+    {
+      "id": "month_end_overflow",
+      "claim": "Jan 31 + 1 month: Date.setMonth silently rolls into March (2026-03-03), Temporal constrains to the last valid day (2026-02-28), and overflow:'reject' throws instead of guessing.",
+      "evidence": "probe-result.json.month_end_overflow",
+      "value": { "date_rolls_to": "2026-03-03", "temporal_constrain": "2026-02-28", "temporal_reject": "RangeError" }
+    },
+    {
+      "id": "string_parsing",
+      "claim": "new Date('2026-06-29') parses as UTC midnight; new Date('2026/06/29') parses as LOCAL midnight (different epoch); Temporal.PlainDate is timezone-free by design.",
+      "evidence": "probe-result.json.parsing",
+      "value": { "iso_dash_utc": "2026-06-29T00:00:00.000Z", "slash_local_differs": true, "plaindate_no_tz": "2026-06-29" },
+      "caveat": "The slash-vs-ISO epoch difference holds on any non-UTC machine; on a UTC-only machine the two coincide. run.sh pins TZ=Asia/Seoul (the recorded run's zone)."
+    },
+    {
+      "id": "temporal_types",
+      "claim": "The four Temporal types — Instant, PlainDate, PlainDateTime, ZonedDateTime — are all present.",
+      "evidence": "probe-result.json.types_present",
+      "value": { "Instant": true, "PlainDate": true, "PlainDateTime": true, "ZonedDateTime": true }
+    },
+    {
+      "id": "v8_146_extras",
+      "claim": "V8 14.6 (bundled in Node 26) ships Map.getOrInsert, Map.getOrInsertComputed, and Iterator.concat.",
+      "evidence": "probe-result.json.v8_146",
+      "value": { "map_getOrInsert": true, "map_getOrInsertComputed": true, "iterator_concat": true }
+    },
+    {
+      "id": "removals",
+      "claim": "Node 26 removes http.ServerResponse.prototype.writeHeader (EOL alias) and the legacy _stream_wrap internal module.",
+      "evidence": "probe-result.json.removals",
+      "value": { "http_writeHeader_removed": true, "_stream_wrap": "MODULE_NOT_FOUND" }
+    }
+  ],
+
+  "cited_not_measured": [
+    { "claim": "Node 26.0.0 released 2026-05-05; latest 26.x is v26.4.0 (2026-06-24).", "source": "nodejs.org/dist index.json + release blog", "url": "https://nodejs.org/en/blog/release/v26.0.0" },
+    { "claim": "Temporal became the default top-level global via nodejs/node #61806.", "source": "Node release notes", "url": "https://github.com/nodejs/node/releases/tag/v26.0.0" },
+    { "claim": "Node 26 enters LTS in 2026-10; from Node 27 every major is annual (April) and all go LTS.", "source": "InfoQ 2026-06", "url": "https://www.infoq.com/news/2026/06/nodejs-release-changes/" },
+    { "claim": "Node 26 drops Python 3.9 build support and requires GCC 13.2+; --experimental-transform-types removed.", "source": "Node 26 changelog", "url": "https://github.com/nodejs/node/releases/tag/v26.0.0" }
+  ]
+}

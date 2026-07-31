@@ -1,0 +1,58 @@
+{
+  "run_id": "2026-06-29-nodejs-26-temporal-default",
+  "post_slug": "nodejs-26-temporal-default",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/nodejs-26-temporal-default",
+    "en": "https://var.gg/en/blog/nodejs-26-temporal-default"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-29T00:00:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "backfilled": true,
+  "backfill_note": "The post was published 2026-06-30 from a firsthand run on 2026-06-29. The original throwaway harness (exp.mjs) was not retained in the workspace — only the recorded firsthand-benchmark.md. This exp.mjs is a faithful reconstruction of that experiment, and it was RE-RUN on a freshly downloaded official Node v26.4.0 (the same build) while packaging; probe-result.json here is that fresh, genuine output, and every value matches the 2026-06-29 record. Because the checks are deterministic language behaviors on a pinned build, this is fully reproducible rather than a transcribed claim.",
+
+  "environment": {
+    "os": "Windows 11",
+    "runner": "node (portable v26.4.0 build), no network, no deps",
+    "tz": "Asia/Seoul (system); the harness TZ export did not propagate to the Windows node.exe child, so probe-result.json reports tz '(unset)' — the two string-parsing rows still resolved against the KST system clock. On POSIX, run.sh's `export TZ=Asia/Seoul` propagates normally.",
+    "note": "This verifies language/runtime BEHAVIOR (Temporal global presence, immutability, DST arithmetic, overflow policy, parsing, removals), not timing. CPU/GPU/RAM do not affect the result and are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "nodejs",
+    "version": "26.4.0",
+    "install": "curl -sSL https://nodejs.org/dist/v26.4.0/node-v26.4.0-<platform>.<ext> (run.sh handles per-OS)",
+    "reported_versions": {
+      "v8": "14.6.202.34-node.21",
+      "undici": "8.5.0",
+      "uv": "1.52.1",
+      "NODE_MODULE_VERSION": "147",
+      "npm_bundled": "11.17.0"
+    },
+    "note": "npm_bundled is read from the dist index, not exercised by the harness."
+  },
+  "baseline": {
+    "name": "legacy Date",
+    "note": "The comparison is legacy `Date` (0-indexed months, in-place mutation, DST-blind ms math, silent overflow, ambiguous string parsing) vs the new `Temporal` global on the SAME runtime. No third library is executed."
+  },
+
+  "tool": {
+    "name": "node",
+    "language": "javascript (ESM)",
+    "version": "26.4.0",
+    "harness": "exp.mjs"
+  },
+
+  "not_measured": {
+    "lts_timeline": "LTS entry (2026-10) and the Node 27+ annual-major cadence are cited from official/InfoQ sources, not something a harness can observe.",
+    "cross_platform": "Only run on Windows x64 here. Temporal/Date behavior is platform-independent by spec, but the harness was not executed on Linux/macOS in this run; run.sh supports all three."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "The downloaded node binary (~120MB extracted) is NOT committed; run.sh re-fetches the pinned official build into ./.node (gitignored). The deterministic evidence — probe-result.json — is committed."
+  }
+}

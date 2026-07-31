@@ -1,0 +1,57 @@
+{
+  "environment": {
+    "node": "26.4.0",
+    "v8": "14.6.202.34-node.21",
+    "undici": "8.5.0",
+    "uv": "1.52.1",
+    "modules": "147",
+    "tz": "(unset)"
+  },
+  "temporal_global": true,
+  "month_indexing": {
+    "date_month_arg_6_is": "July",
+    "date_getMonth": 6,
+    "temporal_month_field": "2026-07-29"
+  },
+  "mutability": {
+    "date_mutates_in_place": true,
+    "date_before": "2026-07-29",
+    "date_after": "2026-08-29",
+    "plaindate_original_preserved": true,
+    "plaindate_add_returns_new": "2026-08-29"
+  },
+  "dst": {
+    "start": "2026-03-07T12:00:00-05:00[America/New_York]",
+    "plus_calendar_day_hour": 12,
+    "plus_physical_24h_hour": 13,
+    "legacy_date_plus_24h_ny_hour": 13,
+    "calendar_and_physical_diverge": true
+  },
+  "month_end_overflow": {
+    "date_setMonth_rolls_over_to": "2026-03-03",
+    "temporal_constrain_clamps_to": "2026-02-28",
+    "temporal_reject_throws": "RangeError"
+  },
+  "parsing": {
+    "iso_dash_is_utc_midnight": "2026-06-29T00:00:00.000Z",
+    "slash_local_epoch_differs": true,
+    "slash_utc_string": "2026-06-28T15:00:00.000Z",
+    "temporal_plaindate_has_no_tz": "2026-06-29"
+  },
+  "types_present": {
+    "Instant": true,
+    "PlainDate": true,
+    "PlainDateTime": true,
+    "ZonedDateTime": true
+  },
+  "v8_146": {
+    "map_getOrInsert": true,
+    "map_getOrInsertComputed": true,
+    "iterator_concat": true
+  },
+  "removals": {
+    "http_writeHeader_removed": true,
+    "_stream_wrap_removed": true,
+    "_stream_wrap_error_code": "MODULE_NOT_FOUND"
+  }
+}
