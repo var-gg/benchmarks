@@ -1,0 +1,7 @@
+{
+  "zig_version": "0.16.0",
+  "with_flush":    { "stdout": "hello, writergate", "bytes": 17 },
+  "without_flush": { "stdout": "", "bytes": 0 },
+  "old_std_io_getStdOut_compiles": false, "old_api_error": "has no member named 'io'",
+  "std_thread_pool_compiles": false, "thread_pool_error": "has no member named 'Pool'"
+}

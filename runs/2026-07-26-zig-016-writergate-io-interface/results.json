@@ -1,0 +1,50 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies zig 0.16.0 compiler behavior and standard-library symbol presence, not timing. No statistical distribution applies: for a pinned compiler and fixed sources, each verdict (compile pass/fail, stdout byte count) is deterministic. source_of_truth = probe-result.json.",
+
+  "subject": "zig 0.16.0",
+  "backend": "Windows x86_64, Threaded I/O (baseline)",
+
+  "behaviors_verified": [
+    {
+      "id": "canonical_write_flushes",
+      "claim": "The canonical 0.16 stdout write — std.Io.File.stdout().writer(io, &buf) -> interface.print(...) -> interface.flush(), with a Juicy Main pub fn main(init: std.process.Init) injecting init.io — compiles, runs, and prints.",
+      "verified_on": "zig 0.16.0",
+      "evidence": "hello_flush.zig -> probe-result.json.with_flush",
+      "value": "stdout = \"hello, writergate\", 17 bytes"
+    },
+    {
+      "id": "no_flush_footgun",
+      "claim": "The SAME program with only flush() removed prints nothing — the new std.Io.Writer is buffered by default, so output is silently discarded if the program exits without flushing.",
+      "verified_on": "zig 0.16.0",
+      "evidence": "hello_noflush.zig -> probe-result.json.without_flush",
+      "value": "stdout = \"\", 0 bytes (vs 17 bytes with flush)"
+    },
+    {
+      "id": "std_io_namespace_removed",
+      "claim": "The lowercase std.io namespace is gone (renamed to std.Io) and std.io.getStdOut() no longer exists — old 0.15 code fails at the NAMESPACE step, not at getStdOut.",
+      "verified_on": "zig 0.16.0",
+      "evidence": "old_api.zig -> probe-result.json.old_api_error",
+      "value": "compile error: struct 'std' has no member named 'io'"
+    },
+    {
+      "id": "thread_pool_removed",
+      "claim": "std.Thread.Pool was removed — the pre-async concurrency helper is gone, replaced by std.Io async primitives. This shows Writergate is about async I/O, not cosmetics.",
+      "verified_on": "zig 0.16.0",
+      "evidence": "threadpool.zig -> probe-result.json.thread_pool_error",
+      "value": "compile error: struct 'Thread' has no member named 'Pool'"
+    }
+  ],
+
+  "not_measured": {
+    "linux_io_uring": "Not run. The Linux io_uring evented backend's actual behavior/throughput is discussed in the post as cited from the release notes, not measured here.",
+    "macos_gcd": "Not run. The macOS GCD evented backend is cited, not measured.",
+    "async_throughput": "Not run. Real async program throughput, the scheduler internals, and 0.15->0.16 migration scale are cited/qualitative, not firsthand-measured. This is a deterministic compile+stdout probe, not a speed benchmark."
+  },
+
+  "cited_not_measured": [
+    { "claim": "0.16.0 was an ~8-month release with 244 contributors and 1,183 commits.", "source": "Zig 0.16.0 release notes", "url": "https://ziglang.org/download/0.16.0/release-notes.html" },
+    { "claim": "std.Io targets colorless async: threaded backend plus evented backends (Linux io_uring, macOS GCD).", "source": "Zig 0.16.0 release notes" },
+    { "claim": "std.Io.async and std.Io.Group exist in the std source (io.zig:2326, io.zig:1218).", "source": "zig std source, observed in the pinned 0.16.0 toolchain" }
+  ]
+}

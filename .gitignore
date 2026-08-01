@@ -19,6 +19,8 @@ render-*.png
 # Reproduction scratch
 .venv/
 .node/
+.zig/
+*.gen.json
 __pycache__/
 node_modules/
 target/

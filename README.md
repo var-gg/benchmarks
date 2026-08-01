@@ -19,6 +19,7 @@ most public benchmarks, not less.
 | Date | Run | Post | Kind |
 |---|---|---|---|
 | 2026-07-29 | [2026-07-29-mcp-2026-spec-stateless-core](./runs/2026-07-29-mcp-2026-spec-stateless-core/) | [KO](https://var.gg/ko/blog/mcp-2026-spec-stateless-core) | capability_verification |
+| 2026-07-26 | [2026-07-26-zig-016-writergate-io-interface](./runs/2026-07-26-zig-016-writergate-io-interface/) | [KO](https://var.gg/ko/blog/zig-016-writergate-io-interface) | capability_verification |
 | 2026-07-24 | [2026-07-24-navigation-api-spa-routing](./runs/2026-07-24-navigation-api-spa-routing/) | [KO](https://var.gg/ko/blog/navigation-api-spa-routing) | capability_verification |
 | 2026-07-24 | [2026-07-24-systemd-261-init-system-scope](./runs/2026-07-24-systemd-261-init-system-scope/) | [KO](https://var.gg/ko/blog/systemd-261-init-system-scope) | capability_verification |
 | 2026-07-23 | [2026-07-23-osv-scanner-reachability](./runs/2026-07-23-osv-scanner-reachability/) | [KO](https://var.gg/ko/blog/osv-scanner-reachability) | capability_verification |
