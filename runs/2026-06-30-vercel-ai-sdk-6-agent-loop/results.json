@@ -1,0 +1,74 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies the post's claims about Vercel AI SDK 6 agent tool loops against the SDK's own runtime behavior, driven by a scripted MockLanguageModelV3 (0 model calls). For pinned ai@6.0.212 the verdict is deterministic: a step count, a content-part type, or an error class is what it is. Source of truth: probe-result.json.",
+
+  "subject": {
+    "ai": "6.0.212",
+    "zod": "4.4.3",
+    "model_calls": 0,
+    "determinism": "MockLanguageModelV3 (ai/test) — scripted doGenerate, no network"
+  },
+
+  "api_surface_verified": {
+    "claim": "The v6 agent class has two names for one class, and maxSteps is gone from the surface.",
+    "symbols": [
+      "ToolLoopAgent === Experimental_Agent -> true (same class, two names)",
+      "'maxSteps' in (ai exports) -> false (removed in v6; loop control is stopWhen only)",
+      "ai/test exports MockLanguageModelV3 (V3, not V2)"
+    ]
+  },
+
+  "loop_control_verified": {
+    "claim": "The agent 'loop' is just re-calling the model; whether it loops at all is decided entirely by stopWhen.",
+    "observations": [
+      "A) generateText + stopWhen: stepCountIs(5), scripted [tool-call, text] -> steps=2, tool executed once ({city:Seoul,tempC:21}), final text 'Seoul is 21C.'",
+      "B) same script, NO stopWhen -> steps=1, final text '' (empty), but the tool STILL executed (toolResults=[{city:Seoul,tempC:21}]). The result never returns to the model, so the answer is empty.",
+      "B2) stopWhen: hasToolCall('weather') -> steps=1 (stops right after that tool call)"
+    ]
+  },
+
+  "tool_error_selfheal_verified": {
+    "claim": "By default the SDK catches tool failures, feeds them back as a tool-error part, and lets the model recover — the loop does not die.",
+    "observations": [
+      "C) tool execute() throws 'TOOL_BOOM' -> generateText does NOT throw. steps=2, step0 content types = ['tool-call','tool-error'], final text 'recovered'.",
+      "C2) model calls a tool that isn't registered ('ghost') -> does NOT throw. step0 content types = ['tool-call','tool-error'], loop continues (steps=2)."
+    ]
+  },
+
+  "structured_output_verified": {
+    "claim": "Types are a compile-time contract; validation is a runtime throw. They are different layers.",
+    "observations": [
+      "D) generateObject with valid JSON -> r.object = {city,tempC}, runtime r.object.tempC*2 = 42",
+      "D) schema violation (tempC:'hot') -> throws AI_NoObjectGeneratedError (runtime)",
+      "D) non-JSON output -> throws AI_NoObjectGeneratedError (runtime)"
+    ]
+  },
+
+  "agent_class_verified": {
+    "claim": "ToolLoopAgent is a thin wrapper over the same loop, and its DEFAULT stopWhen is stepCountIs(20) — this default cap is what 'being an agent' actually means.",
+    "observations": [
+      "F) new ToolLoopAgent({model,tools,stopWhen: stepCountIs(5)}).generate({prompt}) -> steps=2, text 'Busan 21C.'",
+      "F2) a never-ending model (always re-calls the same tool) with NO stopWhen: ToolLoopAgent -> steps=20 (default cap); the bare generateText -> steps=1 (no loop). Same model, opposite behavior. An endless model silently burns 20 model calls under the agent class."
+    ]
+  },
+
+  "migration_trap_verified": {
+    "claim": "v5 code that looped via maxSteps silently becomes a single step in v6.",
+    "observations": [
+      "G) passing maxSteps:5 (rejected at the type level via @ts-expect-error) -> runtime steps=1, text '' (empty). maxSteps is ignored; the loop must be re-expressed with stopWhen."
+    ]
+  },
+
+  "not_measured": {
+    "real_provider_behavior": "The mock scripts doGenerate/doStream by hand. Real-LLM nondeterminism — malformed tool arguments, infinite tool-loop tendencies, provider-native structured output — is NOT reproduced. This run verifies the SDK's CONTRACT and control flow, not model behavior.",
+    "provider_specific": "Structured-output native support and streaming details vary by provider and are not visible through the mock.",
+    "tool_error_override": "The tool-error self-heal is the DEFAULT; onError / tool options can change it. Only the default path is exercised.",
+    "usage_tokens": "usage numbers are mock-filled placeholders, not real token counts.",
+    "streaming_order": "The fullStream part ordering (start -> text-* -> tool-input-* -> tool-call -> tool-result -> finish) was observed in the original firsthand run but is not asserted in this committed harness (it is order-of-emission, not a scalar); cited, not re-measured here."
+  },
+
+  "cited_not_measured": [
+    { "claim": "generateObject is marked @deprecated in the 6.0.212 .d.ts ('Use generateText with an output setting instead'); the recommended path is generateText({ output: Output.object({schema}) }), still experimental.", "source": "ai@6.0.212 type declarations (node_modules/ai/dist/*.d.ts)" },
+    { "claim": "In v6 the agent system prompt parameter was renamed system -> instructions.", "source": "ai@6.0.212 ToolLoopAgent options" }
+  ]
+}

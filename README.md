@@ -36,6 +36,7 @@ most public benchmarks, not less.
 | 2026-07-07 | [2026-07-07-wasmtime-46-wasi-sandbox](./runs/2026-07-07-wasmtime-46-wasi-sandbox/) | [KO](https://var.gg/ko/blog/wasmtime-46-wasi-sandbox) | capability_verification (backfill) |
 | 2026-07-06 | [2026-07-06-valkey-91-redis-alternative](./runs/2026-07-06-valkey-91-redis-alternative/) | [KO](https://var.gg/ko/blog/valkey-91-redis-alternative) | benchmark (backfill) |
 | 2026-06-30 | [2026-06-30-python-type-checkers-pyrefly-ty](./runs/2026-06-30-python-type-checkers-pyrefly-ty/) | [KO](https://var.gg/ko/blog/python-type-checkers-pyrefly-ty) | benchmark (backfill) |
+| 2026-06-30 | [2026-06-30-vercel-ai-sdk-6-agent-loop](./runs/2026-06-30-vercel-ai-sdk-6-agent-loop/) | [EN](https://var.gg/en/blog/vercel-ai-sdk-6-agent-loop) · [KO](https://var.gg/ko/blog/vercel-ai-sdk-6-agent-loop) | capability_verification |
 | 2026-06-29 | [2026-06-29-mise-dev-toolchain-bootstrap](./runs/2026-06-29-mise-dev-toolchain-bootstrap/) | [KO](https://var.gg/ko/blog/mise-dev-toolchain-bootstrap) | mixed (backfill) |
 | 2026-06-29 | [2026-06-29-nodejs-26-temporal-default](./runs/2026-06-29-nodejs-26-temporal-default/) | [EN](https://var.gg/en/blog/nodejs-26-temporal-default) · [KO](https://var.gg/ko/blog/nodejs-26-temporal-default) | capability_verification (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |

@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-06-30-vercel-ai-sdk-6-agent-loop",
+  "post_slug": "vercel-ai-sdk-6-agent-loop",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/vercel-ai-sdk-6-agent-loop",
+    "en": "https://var.gg/en/blog/vercel-ai-sdk-6-agent-loop"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-08-03T00:00:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "backfilled": false,
+  "reconstruction_note": "The post published 2026-06-30. The original ad-hoc harness lived in a gitignored tmp/ scratch dir and was cleaned up after publication; the firsthand record (firsthand-benchmark.md) was preserved. exp.ts here is reconstructed from that record and re-run live on 2026-08-03 against the SAME pinned ai@6.0.212 + zod@4.4.3. Because the harness makes ZERO model calls (MockLanguageModelV3), the result is deterministic and every recorded assertion reproduced exactly. This is a genuine live run, not a paper reconstruction — hence backfilled:false.",
+
+  "environment": {
+    "os": "Windows 11 x64",
+    "runner": "native (no Docker)",
+    "node": "v24.15.0",
+    "note": "The probe drives the SDK's agent loop with a scripted mock language model (0 network calls). It observes control flow — step counts, tool-error feedback parts, structured-output throws, the ToolLoopAgent default stopWhen cap. These are pinned by the SDK version, not by CPU/GPU/RAM, so hardware is intentionally omitted. Node version affects only meta.node, not the experiment values."
+  },
+
+  "subject": {
+    "name": "Vercel AI SDK 6 — agent tool loop, structured output, and the v5 to v6 maxSteps removal",
+    "version": "ai@6.0.212, zod@4.4.3",
+    "source": "npm ai@6.0.212 (Experimental_Agent / ToolLoopAgent, generateText, generateObject, stepCountIs, hasToolCall) and ai/test MockLanguageModelV3",
+    "toolchain": { "name": "node + tsx", "version": "Node v24.15.0, tsx 4", "deps": "ai@6.0.212, zod@4.4.3 (pinned)" },
+    "note": "All subject versions are pinned exactly (no ^ ranges, no latest). A fresh npm install of ai@6.0.212 reproduces the committed probe-result.json."
+  },
+  "baseline": {
+    "name": "Vercel AI SDK 5 mental model (maxSteps-driven loop)",
+    "note": "Two v6 assertions are framed as deltas from v5: maxSteps is no longer exported or honored (loop control moved entirely to stopWhen), and the agent class default stopWhen is stepCountIs(20)."
+  },
+
+  "fixture": {
+    "harness": "exp.ts",
+    "experiments": 13,
+    "design": "13 experiments across 5 groups: API surface (class identity, maxSteps removal), loop control (stopWhen present/absent/hasToolCall), tool-error self-heal (execute throws, ghost tool), structured-output boundaries (valid / schema violation / non-JSON), and the ToolLoopAgent wrapper + its default 20-step cap. Each experiment reads a concrete field of the SDK's return value (steps.length, text, content part types, error class)."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "node_modules is NOT committed (gitignored) — run.sh reinstalls the pinned deps. The deterministic evidence probe-result.json IS committed.",
+    "note": "probe-result.json holds the full 13-experiment matrix. Re-running run.sh with ai@6.0.212 regenerates it identically (except meta.node, which reflects the local Node)."
+  }
+}

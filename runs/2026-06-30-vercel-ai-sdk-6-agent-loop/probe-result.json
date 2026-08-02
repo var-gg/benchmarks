@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "ai_version": "6.0.212",
+    "zod_version": "4.4.3",
+    "node": "v24.15.0",
+    "model_calls": 0,
+    "determinism": "MockLanguageModelV3 (ai/test) — no network, no LLM"
+  },
+  "experiments": {
+    "api_surface": {
+      "toolLoopAgent_is_experimental_agent": true,
+      "maxSteps_exported": false,
+      "mock_is_v3": true
+    },
+    "A_loop_stepCountIs5": {
+      "steps": 2,
+      "text": "Seoul is 21C.",
+      "toolResults": [
+        {
+          "city": "Seoul",
+          "tempC": 21
+        }
+      ]
+    },
+    "B_no_stopWhen": {
+      "steps": 1,
+      "text": "",
+      "toolResults": [
+        {
+          "city": "Seoul",
+          "tempC": 21
+        }
+      ]
+    },
+    "B2_hasToolCall": {
+      "steps": 1,
+      "text": ""
+    },
+    "C_tool_throws": {
+      "threw": false,
+      "steps": 2,
+      "text": "recovered",
+      "step0_content_types": [
+        "tool-call",
+        "tool-error"
+      ]
+    },
+    "C2_ghost_tool": {
+      "threw": false,
+      "steps": 2,
+      "step0_content_types": [
+        "tool-call",
+        "tool-error"
+      ]
+    },
+    "D_object_valid": {
+      "object": {
+        "city": "Seoul",
+        "tempC": 21
+      },
+      "tempC_times2": 42
+    },
+    "D_object_schema_violation": {
+      "result": "AI_NoObjectGeneratedError"
+    },
+    "D_object_nonjson": {
+      "result": "AI_NoObjectGeneratedError"
+    },
+    "F_agent_wrapper": {
+      "steps": 2,
+      "text": "Busan 21C."
+    },
+    "F2_default_cap": {
+      "agent_steps": 20,
+      "generateText_steps": 1
+    },
+    "G_maxSteps_ignored": {
+      "steps": 1,
+      "text": ""
+    }
+  }
+}
