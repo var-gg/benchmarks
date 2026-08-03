@@ -1,0 +1,229 @@
+{
+  "feature_matrix": {
+    "grid": {
+      "3.48.0": {
+        "SET NOT NULL": "ERR",
+        "DROP NOT NULL": "ERR",
+        "ADD CHECK": "ERR",
+        "DROP CONSTRAINT": "ERR"
+      },
+      "3.49.0": {
+        "SET NOT NULL": "ERR",
+        "DROP NOT NULL": "ERR",
+        "ADD CHECK": "ERR",
+        "DROP CONSTRAINT": "ERR"
+      },
+      "3.50.0": {
+        "SET NOT NULL": "ERR",
+        "DROP NOT NULL": "ERR",
+        "ADD CHECK": "ERR",
+        "DROP CONSTRAINT": "ERR"
+      },
+      "3.51.0": {
+        "SET NOT NULL": "ERR",
+        "DROP NOT NULL": "ERR",
+        "ADD CHECK": "ERR",
+        "DROP CONSTRAINT": "ERR"
+      },
+      "3.52.0": {
+        "SET NOT NULL": "OK",
+        "DROP NOT NULL": "OK",
+        "ADD CHECK": "OK",
+        "DROP CONSTRAINT": "OK"
+      },
+      "3.53.0": {
+        "SET NOT NULL": "OK",
+        "DROP NOT NULL": "OK",
+        "ADD CHECK": "OK",
+        "DROP CONSTRAINT": "OK"
+      }
+    },
+    "detail": {
+      "3.48.0": {
+        "SET NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET NOT NULL;\n                ^--- error here"
+        },
+        "DROP NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN email DROP NOT NULL;\n                ^--- error here"
+        },
+        "ADD CHECK": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t ADD CONSTRAINT age_nonneg CHECK(age >= 0);\n                    ^--- error here"
+        },
+        "DROP CONSTRAINT": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t DROP CONSTRAINT age_ck;\n                     ^--- error here"
+        }
+      },
+      "3.49.0": {
+        "SET NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET NOT NULL;\n                ^--- error here"
+        },
+        "DROP NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN email DROP NOT NULL;\n                ^--- error here"
+        },
+        "ADD CHECK": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t ADD CONSTRAINT age_nonneg CHECK(age >= 0);\n                    ^--- error here"
+        },
+        "DROP CONSTRAINT": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t DROP CONSTRAINT age_ck;\n                     ^--- error here"
+        }
+      },
+      "3.50.0": {
+        "SET NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET NOT NULL;\n                ^--- error here"
+        },
+        "DROP NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN email DROP NOT NULL;\n                ^--- error here"
+        },
+        "ADD CHECK": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t ADD CONSTRAINT age_nonneg CHECK(age >= 0);\n                    ^--- error here"
+        },
+        "DROP CONSTRAINT": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t DROP CONSTRAINT age_ck;\n                     ^--- error here"
+        }
+      },
+      "3.51.0": {
+        "SET NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET NOT NULL;\n                ^--- error here"
+        },
+        "DROP NOT NULL": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"ALTER\": syntax error\n  ALTER TABLE t ALTER COLUMN email DROP NOT NULL;\n                ^--- error here"
+        },
+        "ADD CHECK": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t ADD CONSTRAINT age_nonneg CHECK(age >= 0);\n                    ^--- error here"
+        },
+        "DROP CONSTRAINT": {
+          "ok": false,
+          "syntax_error": true,
+          "stderr": "Parse error near line 2: near \"CONSTRAINT\": syntax error\n  ALTER TABLE t DROP CONSTRAINT age_ck;\n                     ^--- error here"
+        }
+      },
+      "3.52.0": {
+        "SET NOT NULL": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "DROP NOT NULL": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "ADD CHECK": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "DROP CONSTRAINT": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        }
+      },
+      "3.53.0": {
+        "SET NOT NULL": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "DROP NOT NULL": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "ADD CHECK": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        },
+        "DROP CONSTRAINT": {
+          "ok": true,
+          "syntax_error": false,
+          "stderr": ""
+        }
+      }
+    },
+    "features": [
+      "SET NOT NULL",
+      "DROP NOT NULL",
+      "ADD CHECK",
+      "DROP CONSTRAINT"
+    ]
+  },
+  "experiments": {
+    "atomic_rejection_exp2": {
+      "rejected": true,
+      "stderr": "Error near line 4: constraint failed",
+      "null_row_survived": true,
+      "schema_unchanged": true
+    },
+    "rollback_exp6": {
+      "rc": 0,
+      "reverted": true,
+      "schema": "CREATE TABLE t(id INTEGER PRIMARY KEY, email TEXT)"
+    },
+    "backward_compat_exp8": {
+      "created_by_352": true,
+      "351_sees_not_null": true,
+      "351_rejects_null_insert": true,
+      "351_reject_stderr": "Runtime error near line 1: NOT NULL constraint failed: t.email (19)",
+      "integrity_ok": true
+    },
+    "limits_exp10": {
+      "SET DEFAULT": {
+        "rejected": true,
+        "syntax_error": true,
+        "stderr": "Parse error near line 2: near \"DEFAULT\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET DEFAULT 0"
+      },
+      "SET DATA TYPE": {
+        "rejected": true,
+        "syntax_error": true,
+        "stderr": "Parse error near line 2: near \"DATA\": syntax error\n  ALTER TABLE t ALTER COLUMN age SET DATA TYPE RE"
+      },
+      "ADD UNIQUE": {
+        "rejected": true,
+        "syntax_error": true,
+        "stderr": "Parse error near line 2: near \"UNIQUE\": syntax error\n  ALTER TABLE t ADD CONSTRAINT u UNIQUE(age);\n "
+      },
+      "ADD PRIMARY KEY": {
+        "rejected": true,
+        "syntax_error": true,
+        "stderr": "Parse error near line 2: near \"PRIMARY\": syntax error\n  ALTER TABLE t ADD CONSTRAINT pk PRIMARY KEY("
+      },
+      "ADD FOREIGN KEY": {
+        "rejected": true,
+        "syntax_error": true,
+        "stderr": "Parse error near line 2: near \"FOREIGN\": syntax error\n  ALTER TABLE t ADD CONSTRAINT fk FOREIGN KEY("
+      }
+    }
+  }
+}

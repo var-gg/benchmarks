@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-06-29-sqlite-353-alter-column",
+  "post_slug": "sqlite-353-alter-column",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/sqlite-353-alter-column"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-08-04T06:45:00+09:00",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "backfilled": false,
+  "reconstruction_note": "The blog post was published 2026-06-29 from a firsthand run whose original harness scripts (run_experiments.py / feature_matrix.py / round2.py) and their .txt logs were deleted after publish per firsthand-cleanup policy; only the summary firsthand-benchmark.md survived. This run dir is NOT a paper backfill: the deterministic parts (the 6-version bisect and the behavioral experiments) were RE-RUN live on 2026-08-04 by re-downloading the six pinned sqlite-tools binaries from sqlite.org. Every recorded verdict was reproduced exactly. Only the hardware-specific timing/large-table experiments (3M/5M rows) from the original run are not re-measured -- see results.json not_measured.",
+  "environment": {
+    "os": "Windows 11 x86_64",
+    "runner": "precompiled sqlite3.exe CLI, no Docker, no network at run time",
+    "note": "This is a SQL-parser capability + DDL-behavior check, not a timing benchmark. Fixed schemas + pinned CLI builds produce fixed OK/ERR verdicts and fixed stderr; CPU/RAM do not affect the result, so they are omitted."
+  },
+
+  "subject": {
+    "name": "sqlite",
+    "feature": "ALTER TABLE ... ALTER COLUMN (SET/DROP NOT NULL, ADD/DROP CHECK constraint)",
+    "documented_in": "3.53.0",
+    "documented_release_date": "2026-04-09",
+    "actually_ships_working_in": "3.52.0",
+    "actual_release_date": "2026-03-06",
+    "install": "download the pinned sqlite-tools zips listed in run.sh from https://sqlite.org/ (win-x64 3480000..3530000; year dir 2025 for 3.48-3.51, 2026 for 3.52-3.53)",
+    "verified_via": "each sqlite3.exe reported its own version string (e.g. '3.52.0 2026-03-06 ...') before probing"
+  },
+  "versions_tested": ["3.48.0", "3.49.0", "3.50.0", "3.51.0", "3.52.0", "3.53.0"],
+
+  "tool": {
+    "name": "sqlite3 CLI",
+    "language": "sql",
+    "versions": ["3.48.0", "3.49.0", "3.50.0", "3.51.0", "3.52.0", "3.53.0"]
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded -- all evidence is small and committed",
+    "note": "feature_matrix.py, experiments.py, and the deterministic probe-result.json are committed. The six ~6.4 MB sqlite-tools zips were downloaded, executed, and deleted after the run (firsthand cleanup); run.sh re-fetches the same pinned versions to reproduce."
+  }
+}
