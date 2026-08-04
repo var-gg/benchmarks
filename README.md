@@ -40,6 +40,7 @@ most public benchmarks, not less.
 | 2026-06-29 | [2026-06-29-mise-dev-toolchain-bootstrap](./runs/2026-06-29-mise-dev-toolchain-bootstrap/) | [KO](https://var.gg/ko/blog/mise-dev-toolchain-bootstrap) | mixed (backfill) |
 | 2026-06-29 | [2026-06-29-nodejs-26-temporal-default](./runs/2026-06-29-nodejs-26-temporal-default/) | [EN](https://var.gg/en/blog/nodejs-26-temporal-default) · [KO](https://var.gg/ko/blog/nodejs-26-temporal-default) | capability_verification (backfill) |
 | 2026-06-29 | [2026-06-29-sqlite-353-alter-column](./runs/2026-06-29-sqlite-353-alter-column/) | [KO](https://var.gg/ko/blog/sqlite-353-alter-column) | capability_verification |
+| 2026-06-27 | [2026-06-27-zizmor-github-actions-audit](./runs/2026-06-27-zizmor-github-actions-audit/) | [KO](https://var.gg/ko/blog/zizmor-github-actions-audit) | benchmark (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |

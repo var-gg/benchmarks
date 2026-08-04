@@ -1,0 +1,49 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-08-05",
+  "original_run": "2026-06-27",
+  "note": "zizmor 1.26.1, offline, against the committed 3-workflow fixture. Numbers are re-verified on 2026-08-05 and match the 2026-06-27 regular-persona run exactly. Deterministic: a pinned version + fixed fixture + --offline yields the same output on any machine.",
+
+  "metrics": [
+    {
+      "id": "regular_findings_total",
+      "label": "Findings on the fixture (default 'regular' persona, offline)",
+      "unit": "findings",
+      "value": 15,
+      "by_rule": {
+        "unpinned-uses": 7,
+        "artipacked": 2,
+        "template-injection": 2,
+        "excessive-permissions": 1,
+        "dangerous-triggers": 1,
+        "unsound-ternary": 1,
+        "typosquat-uses": 1
+      },
+      "by_severity": { "High": 11, "Medium": 3, "Low": 1 }
+    },
+    {
+      "id": "persona_escalation",
+      "label": "Same fixture, escalating persona (signal/noise tradeoff)",
+      "unit": "findings",
+      "reverified_2026_08_05": { "regular": 15, "pedantic": 24, "auditor": 24 },
+      "recorded_2026_06_27": { "regular": 15, "pedantic": 25, "auditor": 26 },
+      "note": "regular reproduces exactly; pedantic/auditor drift by 1-2 because the reconstructed fixture is not byte-identical to the deleted original. The durable claim is the monotonic escalation, not the exact higher-persona count."
+    }
+  ],
+
+  "findings": [
+    { "id": "detects_15", "claim": "15 findings on 3 deliberately-vulnerable workflows.", "detail": "7 unpinned-uses (High/High), 2 artipacked (Medium/Low), 2 template-injection (High/High), 1 excessive-permissions (Medium/Medium), 1 dangerous-triggers (High/Medium), 1 unsound-ternary (Low/High), 1 typosquat-uses (High/Low). Severity split High 11 / Medium 3 / Low 1." },
+    { "id": "new_1_26_audits", "claim": "Both new 1.26 audits fire.", "detail": "typosquat-uses catches `actons/setup-python` (one letter dropped from `actions`); unsound-ternary catches `github.ref_type == 'tag' && '' || 'staging'` where the empty-string branch is falsy, so the expression ALWAYS falls through to 'staging'." },
+    { "id": "offline", "claim": "Fully offline scan.", "detail": "`--offline` needs no network, no GitHub token, no Docker. The regular-persona result is deterministic for a pinned version + fixed input." },
+    { "id": "sarif", "claim": "Native SARIF 2.1.0 output for GitHub code scanning.", "detail": "`--format sarif` -> SARIF 2.1.0, runs[0].tool.driver.name=zizmor version=1.26.1, rules 7 / results 15." },
+    { "id": "exit_code", "claim": "Non-zero exit on findings — CI gate ready.", "detail": "Findings present -> exit 14. A clean workflow -> exit 0." },
+    { "id": "auto_fix", "claim": "`--fix=all` rewrites two finding classes automatically.", "detail": "On ci-deploy.yml: 3 fixes — template-injection rewritten to env indirection (`${{ github.event.pull_request.title }}` -> env GITHUB_EVENT_PULL_REQUEST_TITLE + `${GITHUB_EVENT_PULL_REQUEST_TITLE}` in run), artipacked gets `persist-credentials: false` inserted. On release.yml: 1 fix. Applied to 2 files total." }
+  ],
+
+  "limits": [
+    { "id": "unpinned_is_policy", "note": "7/15 findings are unpinned-uses, a blanket policy that flags even trusted actions pinned by tag (@v4). Not a false positive — a policy choice. Turn it down if you pin by tag deliberately." },
+    { "id": "offline_partial_audits", "note": "Some audits (e.g. ref-confusion) only fully work in online mode (GitHub API). Offline runs use the baked-in corpus only." },
+    { "id": "static_only", "note": "Static analysis: it sees workflow STRUCTURE risk, not runtime behavior or secret values." },
+    { "id": "typosquat_corpus", "note": "typosquat-uses matches against a baked-in list of popular actions; a typo of an obscure action may not be caught." }
+  ]
+}

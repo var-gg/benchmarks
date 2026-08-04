@@ -1,0 +1,39 @@
+{
+  "run_id": "2026-06-27-zizmor-github-actions-audit",
+  "post_slug": "zizmor-github-actions-audit",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/zizmor-github-actions-audit"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-27T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "reverified_at": "2026-08-05",
+  "backfill_note": "The original 2026-06-27 run (blog run #6) had its temporary fixture discarded per the finite-disk policy. fixture/.github/workflows/ was reconstructed from the recorded methodology. Unlike a live-database backfill (e.g. OSV), zizmor's offline scan is deterministic and version-pinned, so the reconstruction was RE-RUN on 2026-08-05 and reproduces the regular-persona result byte-for-byte: 15 findings, identical rule breakdown, identical severity split, SARIF rules 7 / results 15, exit 14. results.json therefore holds re-verified numbers, not just recorded ones. One honest gap: the pedantic/auditor persona counts drift slightly (24/24 today vs the 25/26 recorded on 2026-06-27) because the reconstructed fixture is faithful for the regular persona but not byte-identical to the deleted original; the monotonic escalation (regular < pedantic <= auditor) is the durable claim, exact higher-persona counts are fixture-detail-dependent.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "runner": "uvx (uv 0.11.14), zizmor installed ephemerally into the uv cache",
+    "note": "Scan is fully offline (--offline): no network, no GitHub token, no Docker. Results are deterministic for a pinned zizmor version + fixed input, so they do not drift over time."
+  },
+
+  "subject": {
+    "name": "zizmor",
+    "version": "1.26.1",
+    "install": "uvx zizmor@1.26.1 (pinned, ephemeral; nothing installed globally)",
+    "note": "1.26 shipped the typosquat-uses and unsound-ternary audits that this fixture exercises."
+  },
+
+  "data_source": {
+    "name": "zizmor built-in audit corpus (offline)",
+    "live": false,
+    "drift_warning": "None for the regular persona: pinned version + fixed fixture + --offline = deterministic. Higher personas surface additional low-confidence findings whose exact count depends on byte-level fixture details."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "The original run's fixture and JSON/SARIF dumps were deleted after 2026-06-27. The reconstructed fixture is committed here and was re-executed on 2026-08-05; the summary numbers in results.json are that re-verified output. No fabricated hashes."
+  }
+}

@@ -1,0 +1,24 @@
+name: CI Deploy
+on:
+  pull_request_target:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Echo PR title
+        run: echo "Title is ${{ github.event.pull_request.title }}"
+      - name: Echo PR body
+        run: |
+          echo "Body follows:"
+          echo "${{ github.event.pull_request.body }}"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci && npm run build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
