@@ -1,0 +1,110 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies CLI dialect-dispatch and cross-tool behavior of Microsoft Coreutils 2026.6.16 on native Windows, against System32 / PowerShell / Git Bash baselines. These are pass/fail behavior observations, not a timing distribution. Source of truth for reproduction: run.sh -> probe.sh output. Observed 2026-06-26 (see manifest.backfilled).",
+
+  "version_matrix": {
+    "coreutils --version": "coreutils 2026.6.16 (multi-call binary)",
+    "sort --version (argv0 shim)": "sort (uutils coreutils) 0.8.0",
+    "grep --version": "grep 0.1.0",
+    "coreutils --list count": 80
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "dual_dispatch_shim",
+      "claim": "The SAME binary picks DOS vs Unix dialect from argument SHAPE, not just argv0. `find.exe . -type f` walks the tree (GNU); `find.exe /C \"apple\" crlf.txt` returns the DOS match-count line. `sort.exe -n` is GNU numeric; `sort.exe /R` is DOS reverse.",
+      "evidence": "probe.sh steps find-gnu / find-dos / sort-gnu / sort-dos",
+      "observed": {
+        "find . -type f": "GNU tree walk, backslash paths (.\\crlf.txt)",
+        "find /C \"apple\" crlf.txt": "---------- CRLF.TXT: 2   (DOS match count), exit 0",
+        "sort -n nums.txt": "2,9,10,30,100 (numeric)",
+        "sort /R nums.txt": "9,30,2,100,10 (DOS reverse = descending lexicographic)"
+      },
+      "confirms": "The reported nthelpers.rs heuristic (/C /N -> DOS; -name/-n/+N -> GNU; ambiguous -> DefaultFind/DefaultSort registry; default DOS) is confirmed firsthand."
+    },
+    {
+      "id": "find_semantic_collision",
+      "claim": "coreutils `find` (file-tree walk) and System32 `find.exe` (in-file string search) are semantically OPPOSITE. Feeding a GNU-style invocation to System32 find mis-parses it.",
+      "evidence": "probe.sh step find-collision",
+      "observed": {
+        "System32 find \"apple\" crlf.txt": "header + matching lines (string search)",
+        "System32 find . -name *.txt": "Access denied - . / File not found - -NAME (total misread)"
+      }
+    },
+    {
+      "id": "argv_wildcard_globbing",
+      "claim": "The binary does its own Windows-CRT argv globbing, which cmd does not. `coreutils echo *.txt` expands to filenames, and that same expansion BREAKS `find . -name *.txt` (pattern gets replaced by the file list).",
+      "evidence": "probe.sh step glob",
+      "observed": {
+        "coreutils echo *.txt": "crlf.txt lf.txt nums.txt",
+        "find . -name *.txt (unquoted)": "find: Unrecognized flag: 'lf.txt'",
+        "cmd  -name \"*.txt\"": "works (quotes reach the binary)",
+        "powershell -name '*.txt'": "breaks again (single token passed without surviving quotes)"
+      },
+      "caveat": "Quote-survival differs per shell (cmd vs PowerShell), so the same command line is not portable across Windows shells."
+    },
+    {
+      "id": "numeric_sort_three_way",
+      "claim": "Numeric sort splits three ways. coreutils `sort -n` is true numeric; everything else defaults to lexicographic on this fixture.",
+      "evidence": "probe.sh step numsort",
+      "observed": {
+        "coreutils sort -n": "2,9,10,30,100",
+        "coreutils sort (default)": "10,100,2,30,9 (lexicographic)",
+        "System32 sort.exe": "10,100,2,30,9",
+        "PowerShell sort (Sort-Object)": "10,100,2,30,9"
+      }
+    },
+    {
+      "id": "locale_collation_trap",
+      "claim": "coreutils sort is locale-aware, and `LC_ALL=C` does NOT force byte order on it — so the classic CI determinism trick `LC_ALL=C sort` may not behave like GNU/Git-Bash sort.",
+      "evidence": "probe.sh step collation (bytes confirmed via od on OS redirect)",
+      "observed": {
+        "coreutils sort (case.txt)": "apple,apple,Banana,BANANA,Cherry (locale-aware, mixed case)",
+        "System32 sort.exe": "same (locale-aware)",
+        "Git Bash sort": "BANANA,Banana,Cherry,apple,apple (C-locale byte order, uppercase first)",
+        "coreutils sort with LC_ALL=C": "UNCHANGED (still locale-aware, not byte order)"
+      },
+      "excluded_from_post": "A single-char Z/a/B/b input made default sort emit a mojibake 3-byte UTF-8 sequence — reproducible but unexplained edge anomaly; deliberately NOT used as a claim in the post (honesty)."
+    },
+    {
+      "id": "crlf_handling_divergence",
+      "claim": "Line-ending handling differs by utility: grep normalizes (strips \\r), sort preserves (keeps \\r\\n). wc counts newlines correctly and exposes the CRLF byte delta.",
+      "evidence": "probe.sh step crlf (output bytes via od)",
+      "observed": {
+        "wc -l crlf.txt / lf.txt": "4 / 4",
+        "wc -c crlf.txt / lf.txt": "30 / 26 (CRLF \\r = 4-byte delta)",
+        "grep apple (CRLF input) output": "apple\\n apple\\n  (\\r removed)",
+        "sort (CRLF input) output": "apple\\r\\n ...  (\\r\\n preserved)"
+      }
+    },
+    {
+      "id": "grep_regex_modes",
+      "claim": "coreutils grep 0.1.0 does ERE (-E) and PCRE (-P, Oniguruma), but has no LANG/localization yet.",
+      "evidence": "probe.sh step grep-regex",
+      "observed": {
+        "grep -E \"a+b\" on aaab": "match",
+        "grep -P \"\\d+\" on abc123": "match, exit 0"
+      },
+      "caveat": "grep 0.1.0 is early: LANG encoding not honored, no localization; i18n needs separate verification."
+    }
+  ],
+
+  "approximate_not_a_claim": {
+    "id": "perf_same_order",
+    "note": "Single warm run on a 600k-line / 28.6MB file. Timing is hardware- and cache-dependent and is NOT committed as a benchmark number — the post states performance is 'same order of magnitude', not a win.",
+    "observed": {
+      "grep -c ERROR": "coreutils ~109ms vs Git Bash ~67ms",
+      "sort (28MB)": "coreutils ~135ms vs Git Bash ~130ms"
+    },
+    "conclusion": "No performance-superiority claim is made."
+  },
+
+  "honest_limits": [
+    "GA vs preview tension: Build 2026 blog says GA, GitHub README still carries preview wording (early service release).",
+    "GNU test-suite compat numbers are Linux-execution figures, not Windows end-to-end. See manifest.cited_not_measured.",
+    "/dev/null->NUL, no POSIX signals, permissions are ACL (not POSIX bits), symlink creation needs Developer Mode / elevation.",
+    "Backslash path output can break Linux-style `grep \"/src/\"` pipelines.",
+    "Not a WSL replacement (complementary); shares roles with Git Bash / MSYS2.",
+    "Shims reproduced via argv0 copies (real install uses hardlinks) — behavior identical, but PATH/registry/PowerShell-profile integration was NOT installed, so that part is cited from Microsoft docs, not measured."
+  ]
+}

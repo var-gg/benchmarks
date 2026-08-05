@@ -1,0 +1,47 @@
+{
+  "run_id": "2026-06-26-coreutils-for-windows",
+  "post_slug": "coreutils-for-windows",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/coreutils-for-windows"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-26T10:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The run directory was authored on 2026-08-06 from the firsthand notes taken during the original 2026-06-26 experiment (firsthand-benchmark.md). The recorded behaviors are the outputs observed then. The original ad-hoc harness scripts and the downloaded coreutils binary were removed by the post-publish cleanup policy, so this run.sh is a RECONSTRUCTED harness: it recreates the exact fixtures and re-runs the same commands against pinned Microsoft Coreutils 2026.6.16 so a third party can reproduce the behavior matrix. It was not re-executed at authoring time; treat results.json as the 2026-06-26 observation, and run.sh as the way to re-confirm it.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 Pro 26200, ko-KR",
+    "runner": "native Windows shells (cmd.exe + PowerShell + Git Bash), no Docker",
+    "note": "This is a CLI behavior / dialect-dispatch study, not a timing benchmark. The one timing observation (experiment 8) is explicitly approximate and is NOT presented as a performance win; hardware specs are therefore omitted."
+  },
+
+  "subject": {
+    "name": "Microsoft Coreutils for Windows",
+    "version": "2026.6.16",
+    "install": "winget install --version 2026.6.16 Microsoft.Coreutils   (original run used the portable GitHub release zip because winget needs UAC elevation, unavailable to the unattended session)",
+    "components": {
+      "multi_call_binary": "coreutils.exe (uutils), dispatches on argv0",
+      "uutils": "0.8.0 (reported by `sort --version`)",
+      "grep": "0.1.0 (very early uutils grep)",
+      "command_count": "80 entries from `coreutils --list` (incl. find, grep, sort)"
+    }
+  },
+  "baselines": [
+    { "name": "Windows System32", "items": ["find.exe", "sort.exe", "where.exe"], "note": "DOS-semantics builtins already on PATH." },
+    { "name": "PowerShell aliases", "note": "sort->Sort-Object, ls->Get-ChildItem, etc. shadow external exes." },
+    { "name": "Git Bash / MSYS2", "items": ["/usr/bin/sort", "/usr/bin/grep"], "note": "GNU, C-locale byte collation." }
+  ],
+
+  "cited_not_measured": {
+    "gnu_test_suite_compat": "uutils GNU test-suite pass rate (0.8.0 ~94.7%, 0.9.0 ~90.6%) is a LINUX figure, not Windows end-to-end. The post never claims 'N% identical to GNU on Windows'.",
+    "install_integration": "hardlink creation + PowerShell-profile integration + settings-in-registry are reported by Microsoft docs. The unattended run used argv0 shim copies (behavior-equivalent) and did NOT install, so PATH/registry/profile integration is cited, not measured."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "tools discarded post-publish per firsthand cleanup rules (coreutils.exe, the release zip, shim copies, big.txt fixture). No large raw dumps were kept.",
+    "note": "run.sh regenerates every fixture deterministically (tiny) and the big-file perf fixture on demand (never committed). The deterministic evidence — the behavior matrix in results.json — is committed."
+  }
+}
