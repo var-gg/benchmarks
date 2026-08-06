@@ -1,0 +1,53 @@
+{
+  "A_type_safety": {
+    "reactive_tsc_errors": 0,
+    "signal_tsc_errors": 2,
+    "signal_error_codes": "error TS2345,error TS2551"
+  },
+  "C_aggregation": {
+    "touched_before": {
+      "leaf": false,
+      "group": false,
+      "root": false
+    },
+    "touched_after_leaf_markAsTouched": {
+      "leaf": true,
+      "group": true,
+      "root": true
+    },
+    "root_touched_computed_recalcs_on_that_change": 1,
+    "validity_empty_required": {
+      "leaf_valid": false,
+      "root_valid": false
+    },
+    "validity_after_set_value": {
+      "leaf_valid": true,
+      "root_valid": true
+    }
+  },
+  "B_signal": {
+    "consumer_reads": "email only",
+    "runs_after_init": 1,
+    "extra_runs_on_5_unrelated_changes": 0,
+    "runs_on_own_field_change": 1
+  },
+  "D_async_race": {
+    "starts": [
+      "taken",
+      "free"
+    ],
+    "aborted": [
+      "taken"
+    ],
+    "completed": [
+      "free"
+    ],
+    "stale_taken_aborted": true,
+    "stale_taken_not_completed": true,
+    "latest_free_completed": true
+  },
+  "B_reactive": {
+    "consumer": "group.valueChanges.pipe(map -> v.email))",
+    "map_runs_on_5_unrelated_changes": 5
+  }
+}

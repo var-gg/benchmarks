@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-06-25-angular-22-signal-forms",
+  "post_slug": "angular-22-signal-forms",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/angular-22-signal-forms"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-08-07T06:47:00Z",
+  "operator": "curioustore",
+
+  "kind": "behavior_verification",
+  "backfilled": true,
+  "backfill_note": "The post was drafted 2026-06-25. Its original harness was deleted after drafting per the firsthand-cleanup policy (small local disk). This run directory was reconstructed from the post's firsthand-benchmark.md and RE-EXECUTED fresh on 2026-08-07 against the same versions the post pins. The results here are newly measured, not copied from the draft.",
+
+  "environment": {
+    "os": "Windows 11",
+    "runner": "Node.js + Vitest (jsdom, zoneless Angular TestBed) + tsc",
+    "note": "Deterministic logic/type benchmark. No timing is measured; CPU/GPU/RAM do not affect the result, so they are intentionally omitted. Type errors, signal re-run counts, and abort/complete sets are deterministic for a given library version."
+  },
+
+  "subject": {
+    "name": "@angular/forms (Signal Forms) + @angular/core",
+    "version": "22.0.2",
+    "install": "npm install @angular/core@22.0.2 @angular/forms@22.0.2",
+    "note": "Signal Forms (@angular/forms/signals) reached stable in Angular 22.0. Pinned to 22.0.2 (the version the post cites), not 'latest'."
+  },
+  "baseline": {
+    "name": "@angular/forms (Reactive Forms)",
+    "version": "22.0.2",
+    "note": "Same package/version. The comparison is Signal Forms vs the classic Reactive Forms API within the identical Angular build."
+  },
+
+  "toolchain": {
+    "node": "24.15.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.6",
+    "jsdom": "26.1.0",
+    "rxjs": "7.8.2"
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none — this benchmark produces no large raw artifacts",
+    "note": "The only output is probe-result.json (deterministic: tsc error counts, signal re-run counts, and the abort/complete sets). It is committed in full. node_modules is not committed; run.sh reinstalls the pinned versions."
+  }
+}

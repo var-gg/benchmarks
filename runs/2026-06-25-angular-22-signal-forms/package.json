@@ -1,0 +1,23 @@
+{
+  "name": "firsthand-angular-22-signal-forms",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run --reporter=dot"
+  },
+  "dependencies": {
+    "@angular/core": "22.0.2",
+    "@angular/common": "22.0.2",
+    "@angular/compiler": "22.0.2",
+    "@angular/forms": "22.0.2",
+    "@angular/platform-browser": "22.0.2",
+    "rxjs": "7.8.2",
+    "zone.js": "0.15.1",
+    "tslib": "2.8.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "3.2.6",
+    "jsdom": "26.1.0"
+  }
+}

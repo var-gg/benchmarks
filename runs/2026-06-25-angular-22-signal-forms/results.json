@@ -1,0 +1,54 @@
+{
+  "kind": "behavior_verification",
+  "note": "Verifies type-safety, reactivity granularity, state aggregation, and async-race semantics of Angular 22 Signal Forms against Reactive Forms. No timing. Every value below is deterministic for the pinned versions and is reproduced by run.sh into probe-result.json.",
+
+  "experiment_A_type_safety": {
+    "claim": "A field-name typo and a wrong-type write survive to runtime under stringly-typed Reactive Forms access, but are compile errors under Signal Forms.",
+    "method": "tsc --noEmit --strict on two isolated files.",
+    "reactive_tsc_errors": 0,
+    "signal_tsc_errors": 2,
+    "signal_error_codes": ["TS2551 (typo: Did you mean 'email'?)", "TS2345 (string assigned to number field)"],
+    "source_of_truth": "probe-result.json -> A_type_safety",
+    "caveat": "IMPORTANT honesty note (the post states this too): Angular 14+ typed forms DO catch a wrong-type write when the control is reached by a statically-known literal path, e.g. group.get('user.email').setValue(42) is a compile error. The 0-error result is specifically the stringly-typed surface the post scopes its claim to: an unknown key group.get('emial') (always AbstractControl | null, so a typo never type-checks) and a dynamic/runtime path group.get(fieldName) (AbstractControl<any> | null). Both are idiomatic for dynamic and deeply-nested forms. Signal Forms have no stringly-typed escape hatch, so both bugs are always caught."
+  },
+
+  "experiment_B_reactivity_granularity": {
+    "claim": "A consumer that reads only `email` does not re-run when the unrelated `age` field changes; Reactive Forms' group.valueChanges runs the consumer for any child change.",
+    "method": "Zoneless Angular effect() reading f.email().value() vs group.valueChanges.pipe(map).",
+    "signal_extra_runs_on_5_unrelated_age_changes": 0,
+    "signal_runs_on_1_own_email_change": 1,
+    "reactive_map_runs_on_5_unrelated_age_changes": 5,
+    "source_of_truth": "probe-result.json -> B_signal, B_reactive"
+  },
+
+  "experiment_C_state_aggregation": {
+    "claim": "Marking the deepest leaf touched buckets up to the intermediate group and the root; the root's touched computed recalculates exactly once; validity aggregates from descendants and recovers without a manual revalidate.",
+    "method": "form({user:{name,email},age}) with required(user.name); read touched()/valid() at leaf, group, root.",
+    "touched_bubbled_leaf_group_root": [true, true, true],
+    "root_touched_computed_recalcs_on_that_change": 1,
+    "root_valid_while_required_empty": false,
+    "root_valid_after_filling_leaf": true,
+    "source_of_truth": "probe-result.json -> C_aggregation"
+  },
+
+  "experiment_D_async_race": {
+    "claim": "Changing the value mid-flight aborts the in-flight async validation via AbortSignal; the stale result is dropped and only the latest completes.",
+    "method": "validateAsync backed by resource(); a manual gate holds both loaders in flight; trigger 'taken' then 'free'.",
+    "starts": ["taken", "free"],
+    "aborted": ["taken"],
+    "completed": ["free"],
+    "source_of_truth": "probe-result.json -> D_async_race",
+    "caveat": "This verifies the abort SEMANTICS, not that Signal Forms is uniquely safe. As the post states: Reactive Forms' AsyncValidatorFn also unsubscribes a superseded validation; the difference is mechanism (RxJS unsubscribe vs resource invalidation + AbortSignal). And in both, whether real network/CPU work actually stops depends on the loader honoring AbortSignal — cooperative cancellation."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Async validation only runs after all sync validators pass (no network call while `required` is broken).", "source": "Angular Signal Forms guide + AsyncValidatorOptions docs; stated in the post, not separately asserted in this harness." },
+    { "claim": "zoneless + Vitest became Angular defaults in v21, not v22.", "source": "Angular release notes; contextual, not a Signal-Forms behavior." }
+  ],
+
+  "honest_limitations": [
+    "Re-run counts are measured as signal/subscription re-executions in a headless zoneless TestBed (jsdom), NOT as real component DOM change-detection cycles. The post argues granularity, never absolute milliseconds.",
+    "Signal Forms is newly stable in v22; this harness exercises the core state/validation contracts, not full feature parity with Reactive Forms.",
+    "programmatic value.set() does not auto-mark dirty; experiment C triggers touched explicitly via markAsTouched()."
+  ]
+}
