@@ -1,0 +1,12 @@
+{
+  "name": "playwright-passkey-e2e-harness",
+  "private": true,
+  "type": "module",
+  "description": "Reconstructed harness for the var.gg firsthand run: Playwright 1.61 context.credentials virtual passkey across chromium/firefox/webkit.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
+}

@@ -44,6 +44,7 @@ most public benchmarks, not less.
 | 2026-06-26 | [2026-06-26-coreutils-for-windows](./runs/2026-06-26-coreutils-for-windows/) | [KO](https://var.gg/ko/blog/coreutils-for-windows) | capability_verification (backfill) |
 | 2026-06-26 | [2026-06-26-deno-28-npm-toolchain](./runs/2026-06-26-deno-28-npm-toolchain/) | [EN](https://var.gg/en/blog/deno-28-npm-toolchain) · [KO](https://var.gg/ko/blog/deno-28-npm-toolchain) | benchmark (backfill) |
 | 2026-06-25 | [2026-06-25-angular-22-signal-forms](./runs/2026-06-25-angular-22-signal-forms/) | [KO](https://var.gg/ko/blog/angular-22-signal-forms) | behavior_verification (backfill) |
+| 2026-06-24 | [2026-06-24-playwright-passkey-e2e](./runs/2026-06-24-playwright-passkey-e2e/) | [KO](https://var.gg/ko/blog/playwright-passkey-e2e) | capability_verification (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
 <!-- RUNS:END -->

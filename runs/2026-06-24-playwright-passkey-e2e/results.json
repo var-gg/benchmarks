@@ -1,0 +1,69 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies that Playwright 1.61's context.credentials virtual authenticator drives the passkey (WebAuthn) ceremony across three engines, and documents how the ceremony fails when install() is omitted. No statistical distribution applies: each row is a pass/fail behavior observation, not a timing sample.",
+  "measured_on": "2026-06-24",
+  "subject": "@playwright/test 1.61.1 — context.credentials",
+  "engines_tested": ["chromium", "firefox", "webkit"],
+
+  "api_ground_truth": {
+    "source": "installed @playwright/test 1.61.1 types.d.ts (read directly, not inferred)",
+    "interface": "Credentials (= context.credentials)",
+    "create(rpId, options?)": "options {id?, privateKey?, publicKey?, userHandle?} → {id, rpId, userHandle, privateKey, publicKey}. rpId-only auto-generates an ECDSA P-256 keypair; credentials are always discoverable (resident).",
+    "get(options?)": "{id?, rpId?} → Array<{id, rpId, userHandle, privateKey, publicKey}>. Exports keys, for storing / re-seeding.",
+    "delete(id)": "removes a credential",
+    "install()": "overrides navigator.credentials.create/get. MUST be called before the page touches navigator.credentials; seeding without install() leaves the credential invisible to the page.",
+    "intentional_limits": "No UV toggle, transport choice, attestation format, signCount, or non-discoverable option. P-256 fixed."
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "seed_usernameless_get",
+      "claim": "A seeded discoverable credential resolves a usernameless navigator.credentials.get() on the page — rawId and userHandle match the seed and a signature is produced.",
+      "chromium": "pass",
+      "firefox": "pass",
+      "webkit": "pass"
+    },
+    {
+      "id": "register_export_reseed_login",
+      "claim": "The page registers via create(), the test exports the keys via context.credentials.get(), re-seeds them into a fresh context via create(rpId, {id, privateKey, publicKey, userHandle}), and logs in there.",
+      "chromium": "pass",
+      "firefox": "pass",
+      "webkit": "pass"
+    },
+    {
+      "id": "no_credential_rejects",
+      "claim": "With install() active but nothing seeded, the page get() rejects with NotAllowedError.",
+      "chromium": "pass",
+      "firefox": "pass",
+      "webkit": "pass"
+    },
+    {
+      "id": "install_omitted_native_fallback",
+      "claim": "Omitting install() does not fail cleanly — the ceremony falls through to each engine's native behavior, which differs per engine. The test asserts the ceremony never silently succeeds.",
+      "chromium": "pass (native raises NotSupportedError)",
+      "firefox": "pass (native hangs indefinitely; test resolves via a race timeout)",
+      "webkit": "pass (native raises TypeError)"
+    }
+  ],
+
+  "install_omitted_native_behavior": {
+    "note": "The portability trap: skipping install() is not a clean no-op. Observed native behavior per engine on 2026-06-24.",
+    "chromium": "NotSupportedError",
+    "firefox": "indefinite hang",
+    "webkit": "TypeError"
+  },
+
+  "totals": {
+    "tests": 12,
+    "passed": 12,
+    "wall_time_s_context_only": 6.4,
+    "note": "12 = 4 scenarios x 3 engines. Wall time is machine-dependent context, not an evidence claim."
+  },
+
+  "cited_not_measured": [
+    {
+      "claim": "Platform-authenticator UX (Windows Hello / iCloud Keychain) — UV gesture, attestation, transport — is NOT modeled by the virtual authenticator.",
+      "source": "Playwright docs + the API's intentional-minimalism note; stated as a limit in the post, not measured here."
+    }
+  ]
+}

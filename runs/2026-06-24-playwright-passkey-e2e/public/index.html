@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>passkey e2e harness</title>
+</head>
+<body>
+  <h1>passkey e2e harness</h1>
+  <p>The spec drives WebAuthn through these two helpers. With Playwright's virtual
+     authenticator installed (<code>context.credentials.install()</code>), the browser's
+     native prompt is replaced and the ceremony runs headless.</p>
+  <pre id="log"></pre>
+  <script>
+    const b64url = {
+      enc: (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+    };
+
+    // Registration ceremony (navigator.credentials.create). residentKey:required so the
+    // credential is discoverable — the virtual authenticator seeds discoverable creds too.
+    window.doRegister = async (userName) => {
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: 'var.gg passkey harness', id: location.hostname },
+          user: {
+            id: crypto.getRandomValues(new Uint8Array(16)),
+            name: userName,
+            displayName: userName,
+          },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }], // ES256 / P-256
+          authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+          timeout: 10000,
+        },
+      });
+      return { id: cred.id, rawId: b64url.enc(cred.rawId), type: cred.type };
+    };
+
+    // Usernameless authentication (no allowCredentials) — relies on a discoverable
+    // credential existing. Returns rawId/userHandle/signature so the test can assert.
+    window.doAuthenticate = async () => {
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rpId: location.hostname,
+          userVerification: 'required',
+          timeout: 10000,
+        },
+      });
+      return {
+        id: assertion.id,
+        rawId: b64url.enc(assertion.rawId),
+        userHandle: assertion.response.userHandle ? b64url.enc(assertion.response.userHandle) : null,
+        signature: b64url.enc(assertion.response.signature),
+        type: assertion.type,
+      };
+    };
+  </script>
+</body>
+</html>

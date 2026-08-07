@@ -1,0 +1,45 @@
+{
+  "run_id": "2026-06-24-playwright-passkey-e2e",
+  "post_slug": "playwright-passkey-e2e",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/playwright-passkey-e2e"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-24T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The experiment ran on 2026-06-24 against @playwright/test 1.61.1. Its harness lived in a gitignored tmp/ dir and was deleted after publish per the finite-disk firsthand policy. The harness here (server.mjs + public/index.html + playwright.config.ts + tests/passkey.spec.ts) is reconstructed from the run's recorded methodology and the API ground truth read from the installed 1.61.1 types.d.ts, so a third party can reproduce the capability claims. results.json holds the qualitative matrix measured on 2026-06-24; re-running reproduces the same per-engine pass/fail capability outcomes (wall time drifts and is not an evidence claim).",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11",
+    "node": "v24.15.0",
+    "runner": "Playwright Test runner, headless, 3 engine projects",
+    "note": "This checks whether Playwright's virtual authenticator drives the passkey (WebAuthn) ceremony across engines. It is a capability/behavior check, not a timing benchmark; CPU/GPU/RAM do not affect the pass/fail matrix."
+  },
+
+  "subject": {
+    "name": "@playwright/test",
+    "version": "1.61.1",
+    "api": "context.credentials (interface Credentials: create/get/delete/install)",
+    "install": "npm i -D @playwright/test@1.61.1 && npx playwright install",
+    "note": "1.61 promotes the virtual authenticator to a first-class context.credentials API across chromium/firefox/webkit; the pre-1.61 path was the CDP-only addVirtualAuthenticator, effectively Chromium-limited."
+  },
+  "baseline": {
+    "name": "CDP addVirtualAuthenticator (pre-1.61)",
+    "note": "Compared conceptually in the post (Chromium-only vs cross-engine). No CDP baseline code is executed in this run; the comparison is by capability, not by measured timing."
+  },
+
+  "cross_engine": {
+    "chromium": "measured 2026-06-24",
+    "firefox": "measured 2026-06-24",
+    "webkit": "measured 2026-06-24",
+    "note": "All three engines were exercised firsthand. Unlike a cited support table, the per-engine outcomes in results.json are observed pass/fail from the original run."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "harness discarded post-publish (finite-disk policy); reconstructed here",
+    "note": "No large or binary artifacts. The original run reported 12/12 tests passing in ~6.4s; the wall time is machine-dependent and is recorded as context only, never as an evidence claim. The deterministic evidence is the per-engine capability matrix in results.json, re-derivable by running the harness on the pinned Playwright build."
+  }
+}
