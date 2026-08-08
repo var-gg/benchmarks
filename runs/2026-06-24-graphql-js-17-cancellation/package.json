@@ -1,0 +1,14 @@
+{
+  "name": "graphql-js-17-cancellation-probe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Firsthand probe for var.gg essay: GraphQL.js v16 vs v17 cancellation / cleanup / observability.",
+  "scripts": {
+    "probe": "node probe.mjs"
+  },
+  "dependencies": {
+    "graphql-v16": "npm:graphql@16.14.2",
+    "graphql-v17": "npm:graphql@17.0.1"
+  }
+}

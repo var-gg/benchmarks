@@ -1,0 +1,70 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies the cancellation / cleanup / observability CONTRACTS of GraphQL.js v17 against the v16 baseline. Each row is a deterministic behavior observation (throw vs resolve, event ordering, channel payload shape), not a timing sample — so no statistical distribution applies. Millisecond figures are machine-dependent context, never an evidence claim.",
+  "measured_on": "2026-08-08 (re-run reproducing the 2026-06-24 firsthand)",
+  "node": "v24.15.0",
+  "subject": "graphql 17.0.1",
+  "baseline": "graphql 16.14.2",
+  "source_of_truth": "probe-result.json",
+
+  "behaviors_verified": [
+    {
+      "id": "cancel_ab_v16_ignores",
+      "claim": "In v16, passing an abortSignal to execute() is silently ignored: both fields resolve to full data and info.getAbortSignal does not exist.",
+      "baseline_v16": "resolved (slow=slow-result, slowCooperative=coop-result); getAbortSignal:undefined; ran to the ~300ms timers",
+      "evidence": "probe-result.json.experiment1_cancel_ab.v16"
+    },
+    {
+      "id": "cancel_ab_v17_throws",
+      "claim": "In v17, execute({abortSignal}) rejects with AbortedGraphQLExecutionError the moment abort() fires (~80ms), before the ~300ms resolvers finish.",
+      "subject_v17": "threw AbortedGraphQLExecutionError; getAbortSignal:signal present",
+      "evidence": "probe-result.json.experiment1_cancel_ab.v17"
+    },
+    {
+      "id": "cooperative_vs_orphan",
+      "claim": "v17 cancellation is COOPERATIVE. The executor stops waiting and throws, but child work only stops if the resolver forwards info.getAbortSignal(). A non-propagating resolver's work continues as an orphan.",
+      "observed": "event log shows db:abort:coop (cooperative child actually cancelled, no db:done:coop) while db:done:slow still fires AFTER abort (non-propagating child runs to completion)",
+      "evidence": "probe-result.json.experiment1_cancel_ab.v17.events"
+    },
+    {
+      "id": "cancel_is_not_rollback",
+      "claim": "Cancelling a mutation is not a transaction rollback. With sequential top-level mutation fields, an abort mid-flight still lets already-started side effects commit; the caller receives only the AbortedGraphQLExecutionError and cannot tell which writes landed.",
+      "observed": "events A:enter -> A:wrote -> B:enter -> B:wrote despite abort at 90ms; execute threw AbortedGraphQLExecutionError (isAborted=true) with no partial data telling the caller both wrote",
+      "evidence": "probe-result.json.experiment2_cancel_not_rollback_v17"
+    },
+    {
+      "id": "diagnostics_tracing_channels",
+      "claim": "v17 publishes a node:diagnostics_channel TracingChannel surface: named channels for parse / validate / execute / execute:variableCoercion / execute:rootSelectionSet / resolve / subscribe, each with start/end/asyncStart/asyncEnd/error, and graphql:resolve carries a rich per-field payload.",
+      "observed": "channels fired in order execute -> variableCoercion -> rootSelectionSet -> resolve (per field) -> rootSelectionSet:end -> execute:end, then async fields as asyncStart/asyncEnd; graphql:resolve start payload keys = [alias, args, fieldName, fieldPath, fieldType, isDefaultResolver, parentType]",
+      "caveat": "This run called execute() on a pre-parsed document, so the parse pair observed comes from setup and graphql:validate did NOT fire (validation is a separate stage from execution). The full parse->validate->execute chain appears only when using graphql()/the whole pipeline.",
+      "evidence": "probe-result.json.experiment3_diagnostics_v17"
+    },
+    {
+      "id": "partial_aborted_result",
+      "claim": "On abort, v17 preserves the partial result out-of-band: error.cause carries the abort reason and error.abortedResult resolves to an ExecutionResult where completed fields keep their value and cut-off fields are null with a path error.",
+      "observed": "caught AbortedGraphQLExecutionError; cause.message='client gone'; abortedResult = { data:{fast:'FAST', slow:null}, errors:[{path:['slow']}] }",
+      "evidence": "probe-result.json.experiment4_partial_result_v17"
+    }
+  ],
+
+  "timings_context_only": {
+    "note": "Not evidence. Recorded only to show the fast-fail gap. Drifts per machine.",
+    "v16_full_resolve_ms": 309,
+    "v17_abort_throw_ms": 91
+  },
+
+  "cited_not_measured": [
+    {
+      "claim": "The diagnostics tracing is zero-overhead when nobody subscribes (shouldTrace gates on channel.hasSubscribers).",
+      "source": "graphql 17 diagnostics.mjs source; this run always had subscribers, so the no-subscriber cost was read from source, not measured."
+    },
+    {
+      "claim": "Whether a real database driver honors an AbortSignal depends on the driver.",
+      "source": "The probe uses a setTimeout fake DB to prove the propagation MECHANISM; real-driver cooperation is stated as a caveat in the post, not measured here."
+    },
+    {
+      "claim": "@defer / @stream incremental delivery remains an experimental, separate surface in v17.",
+      "source": "GraphQL.js v17 release notes; out of scope for this run."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-06-24-graphql-js-17-cancellation",
+  "post_slug": "graphql-js-17-cancellation",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/graphql-js-17-cancellation"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-08-08T21:41:30Z",
+  "operator": "curioustore",
+  "backfilled": false,
+  "rerun_note": "The essay's firsthand experiments were originally run on 2026-06-24; that harness lived in a gitignored tmp/ dir and was deleted after publish per the finite-disk policy. Because this is a pure-local Node benchmark with zero external dependencies and the host still runs the exact recorded Node build (v24.15.0), the harness here was re-authored from the recorded methodology and RE-EXECUTED on 2026-08-08 (KST 2026-08-09). probe-result.json is that genuine re-run's output — not a reconstruction. It reproduces every contract the post claims (v16 ignores the signal; v17 throws AbortedGraphQLExecutionError; cooperative vs orphan child work; cancel != rollback; the 7 diagnostics channels; error.abortedResult).",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11",
+    "node": "v24.15.0",
+    "npm": "11.12.1",
+    "runner": "plain Node, single process, no network / DB / GPU",
+    "note": "This checks execution-engine cancellation, cleanup, and observability CONTRACTS (throw-vs-resolve, event ordering, channel payloads), not throughput. CPU/GPU/RAM do not change the pass/fail; the millisecond timings are recorded as context only."
+  },
+
+  "subject": {
+    "name": "graphql",
+    "version": "17.0.1",
+    "install": "npm i graphql@17.0.1",
+    "api": "execute({ abortSignal }), info.getAbortSignal(), AbortedGraphQLExecutionError (named export), error.abortedResult, graphql/diagnostics (node:diagnostics_channel tracingChannel)",
+    "note": "v17 adds cooperative cancellation and a diagnostics_channel observability surface that v16 lacks entirely."
+  },
+  "baseline": {
+    "name": "graphql",
+    "version": "16.14.2",
+    "install": "npm i graphql@16.14.2",
+    "note": "Exercised firsthand as the A/B baseline: execute() silently ignores an abortSignal and exposes no info.getAbortSignal / AbortedGraphQLExecutionError."
+  },
+
+  "dependency_pinning": {
+    "method": "npm aliases in package.json — graphql-v16=npm:graphql@16.14.2, graphql-v17=npm:graphql@17.0.1 — so both versions load in one process.",
+    "why": "Pinning exact versions (not ^ or latest) keeps the contract outcomes reproducible; a future graphql minor could change timing or add fields."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence is small text and committed",
+    "note": "No large or binary artifacts. node_modules is gitignored and not committed. The deterministic evidence is probe-result.json (event orderings + contract outcomes), regenerable by run.sh on the pinned versions."
+  }
+}

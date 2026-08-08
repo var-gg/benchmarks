@@ -1,0 +1,114 @@
+{
+  "generated_at": "2026-08-08T21:41:30.197Z",
+  "node": "v24.15.0",
+  "versions": {
+    "v16": "16.14.2",
+    "v17": "17.0.1"
+  },
+  "experiment1_cancel_ab": {
+    "v16": {
+      "version": "v16",
+      "outcome": "resolved",
+      "data": {
+        "slow": "slow-result",
+        "slowCooperative": "coop-result"
+      },
+      "elapsed_ms_context_only": 309,
+      "events": [
+        "resolver:enter:slow",
+        "db:start:slow",
+        "getAbortSignal:undefined",
+        "db:start:coop",
+        "db:done:slow",
+        "resolver:exit:slow",
+        "db:done:coop"
+      ]
+    },
+    "v17": {
+      "version": "v17",
+      "outcome": "threw",
+      "errorName": "AbortedGraphQLExecutionError",
+      "elapsed_ms_context_only": 91,
+      "events": [
+        "resolver:enter:slow",
+        "db:start:slow",
+        "getAbortSignal:signal",
+        "db:start:coop",
+        "db:abort:coop",
+        "db:done:slow",
+        "resolver:exit:slow"
+      ]
+    }
+  },
+  "experiment2_cancel_not_rollback_v17": {
+    "outcome": "threw",
+    "errorName": "AbortedGraphQLExecutionError",
+    "isAborted": true,
+    "events": [
+      "A:enter",
+      "A:wrote",
+      "B:enter",
+      "B:wrote"
+    ]
+  },
+  "experiment3_diagnostics_v17": {
+    "diagnostics_module_import": true,
+    "observed": true,
+    "channel_events": [
+      "graphql:parse:start",
+      "graphql:parse:end",
+      "graphql:parse:start",
+      "graphql:parse:end",
+      "graphql:execute:start",
+      "graphql:execute:variableCoercion:start",
+      "graphql:execute:variableCoercion:end",
+      "graphql:execute:rootSelectionSet:start",
+      "graphql:resolve:start",
+      "graphql:resolve:end",
+      "graphql:resolve:start",
+      "graphql:resolve:end",
+      "graphql:resolve:start",
+      "graphql:resolve:end",
+      "graphql:resolve:start",
+      "graphql:resolve:end",
+      "graphql:execute:rootSelectionSet:end",
+      "graphql:execute:end",
+      "graphql:resolve:asyncStart",
+      "graphql:resolve:asyncEnd",
+      "graphql:execute:rootSelectionSet:asyncStart",
+      "graphql:execute:rootSelectionSet:asyncEnd",
+      "graphql:execute:asyncStart",
+      "graphql:execute:asyncEnd"
+    ],
+    "resolve_payload_keys": [
+      "alias",
+      "args",
+      "fieldName",
+      "fieldPath",
+      "fieldType",
+      "isDefaultResolver",
+      "parentType"
+    ],
+    "note": "Channels published in this order; graphql:resolve carried the listed payload keys."
+  },
+  "experiment4_partial_result_v17": {
+    "caught": "AbortedGraphQLExecutionError",
+    "isAborted": true,
+    "causeMessage": "client gone",
+    "hasAbortedResult": true,
+    "abortedResult": {
+      "data": {
+        "fast": "FAST",
+        "slow": null
+      },
+      "errors": [
+        {
+          "message": "db aborted: slow",
+          "path": [
+            "slow"
+          ]
+        }
+      ]
+    }
+  }
+}
