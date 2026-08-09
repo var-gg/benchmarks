@@ -1,0 +1,41 @@
+{
+  "run_id": "2026-06-23-duckdb-quack-client-server",
+  "post_slug": "duckdb-quack-client-server",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/duckdb-quack-client-server"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-23T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The experiment ran on 2026-06-23 against DuckDB v1.5.3 (Variegata) + the quack core extension on a single Windows machine over loopback. Its harness (SQL scripts + the quack_serve invocation) lived in a gitignored tmp/ dir and was deleted after publish per the finite-disk firsthand policy. The harness here (server.sql + client.sql + run.sh) is reconstructed from the run's recorded methodology so a third party can reproduce the capability claims on the pinned DuckDB build. results.json holds the qualitative behavior matrix observed on 2026-06-23; re-running reproduces the same pass/fail / error-message outcomes. The latency numbers (Section 5) are machine-dependent context, never an evidence claim.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11",
+    "duckdb": "v1.5.3 (Variegata), Windows amd64 CLI",
+    "extension": "quack (autoloadable core extension: INSTALL quack; LOAD quack;)",
+    "topology": "single machine, loopback (client and server both DuckDB)",
+    "note": "This checks what a quack client-server session actually supports (auth, remote DML/DDL surface, transaction semantics, concurrent append, failure signalling). It is a capability/behavior check, not a timing benchmark; CPU/GPU/RAM do not affect the pass/fail matrix. Section 5 timings are localhost round-trip context only."
+  },
+
+  "subject": {
+    "name": "DuckDB quack",
+    "duckdb_version": "1.5.3",
+    "extension": "quack (core, autoload)",
+    "server": "CALL quack_serve('quack:localhost', token := 'super_secret') -> http://localhost:9494 (localhost-only by default)",
+    "client": "CREATE SECRET (TYPE quack, TOKEN '...'); ATTACH 'quack:localhost' AS remote;",
+    "status": "beta in v1.5.3; stable target v2.0 (2026-09)",
+    "note": "quack turns the in-process OLAP DuckDB into a client-server pair where both ends are DuckDB. Autoloads from the network on first INSTALL quack."
+  },
+
+  "environment_trap": {
+    "note": "On Windows, localhost binds to IPv6 ::1, so Test-NetConnection 127.0.0.1 -Port 9494 (IPv4) is a false negative. The client resolves quack:localhost the same way, so the session works despite the probe failing."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "harness discarded post-publish (finite-disk policy); reconstructed here",
+    "note": "No large or binary artifacts. The deterministic evidence is the capability/behavior matrix in results.json (auth outcomes, remote DML surface, ROLLBACK non-propagation, concurrent-append survival, server-down signalling), re-derivable by running server.sql + client.sql on the pinned DuckDB build. Section 5 latency (remote agg ~0.5s, 1M transfer ~1.0s) is recorded as context only."
+  }
+}

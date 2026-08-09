@@ -1,0 +1,87 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies what a DuckDB quack client-server session (v1.5.3 + quack core extension) actually supports over loopback: auth handshake, the remote DML/DDL surface, transaction propagation, concurrent append, and failure signalling. No statistical distribution applies: each row is a pass/fail or exact-error observation, not a timing sample. Section 5 latency is machine-dependent context, not evidence.",
+  "measured_on": "2026-06-23",
+  "subject": "DuckDB v1.5.3 (Variegata) + quack core extension",
+  "topology": "single Windows machine, loopback; client and server are both DuckDB",
+
+  "1_basic_roundtrip": {
+    "claim": "After ATTACH, the client reads remote tables transparently.",
+    "hello_rows_received": 2,
+    "big_count_star": 1000000,
+    "result": "pass"
+  },
+
+  "2_auth": [
+    { "case": "valid token 'super_secret'", "result": "ATTACH succeeds" },
+    { "case": "wrong token", "result": "Invalid Input Error: Authentication failed -> remote schema not created" },
+    { "case": "no SECRET created", "result": "Invalid Input Error: Could not find a Quack authentication token" }
+  ],
+
+  "3_remote_write_surface": {
+    "note": "Key finding the README does not spell out: the 'multiplayer' story is append + DDL, not arbitrary mutation, in direct SQL.",
+    "INSERT INTO remote.t": "pass (3 rows inserted, read back)",
+    "CREATE TABLE remote.t2 AS SELECT ...": "pass (read back)",
+    "DROP TABLE remote.t2": "pass",
+    "SELECT FROM remote.*": "pass",
+    "UPDATE remote.t SET ...": "fail: Binder Error: Can only update base table",
+    "DELETE FROM remote.t": "fail: Binder Error: Can only delete from base table",
+    "PRAGMA database_list (remote)": "fail: Not implemented Error: InMemory not implemented yet (table reads still work)"
+  },
+
+  "3b_update_delete_serverside_workaround": {
+    "claim": "UPDATE/DELETE are not impossible, only the direct 'UPDATE remote.table' grammar is un-wired; pushing the SQL string to the server works.",
+    "direct UPDATE remote.upd_probe": "fail: Binder Error: Can only update base table",
+    "remote.query('UPDATE upd_probe SET val=999 WHERE id=1 RETURNING *')": "pass ((1,999) returned; read-back val=999)",
+    "matches_issue": "https://github.com/duckdb/quack/issues/176 (Support UPDATE and DELETE over Quack)"
+  },
+
+  "3c_transaction_rollback_not_propagated": {
+    "claim": "A remote multi-statement transaction's ROLLBACK is not propagated: the inserted row survives.",
+    "sql": "BEGIN; INSERT INTO remote.tx_probe VALUES (1); ROLLBACK;",
+    "before_rows": 0,
+    "after_rollback_rows": 1,
+    "result": "fail (row remained despite ROLLBACK) — contradicts docs' 'transactions are forwarded'",
+    "matches_issue": "https://github.com/duckdb/quack/issues/173 (Transactions aren't forwarded without DDL statements)",
+    "implication": "Do not rely on remote BEGIN/ROLLBACK for business integrity in beta."
+  },
+
+  "4_concurrent_writers": {
+    "claim": "Two separate processes appending concurrently both commit with no row loss or lockout.",
+    "writer_A_rows": 5000,
+    "writer_B_rows": 5000,
+    "preexisting_rows": 3,
+    "final_total": 10003,
+    "result": "pass (both processes exit 0; who='A' 5000, who='B' 5000)"
+  },
+
+  "5_latency_context_only": {
+    "note": "Localhost round-trip cost, machine-dependent CONTEXT, not an evidence claim. Shows the boundary tax vs in-process zero-copy.",
+    "remote_agg_sum_v_from_big_s": 0.508,
+    "local_agg_inprocess_s": 0.0,
+    "remote_full_transfer_1M_rows_s": 1.038,
+    "local_1M_copy_s": 0.002,
+    "honest_reading": "The official '~3.5x faster than Arrow Flight' claim is vs another wire protocol. The absolute cost of leaving in-process zero-copy is real (0ms -> 0.5-1s). Arrow Flight direct comparison is out of scope (not measured)."
+  },
+
+  "6_server_failure": {
+    "claim": "Killing the server surfaces a connect error immediately, not a silent hang.",
+    "observed": "IO Error: Failed to send message: IO Error: Could not connect to server error for HTTP POST to 'http://localhost:9494/quack'",
+    "result": "pass (fails fast)"
+  },
+
+  "cited_not_measured": [
+    {
+      "claim": "quack is ~3.5x faster than Arrow Flight.",
+      "source": "official quack materials; a different-wire-protocol comparison. No Arrow Flight baseline was executed in this run."
+    },
+    {
+      "claim": "Stable release target is v2.0 (2026-09).",
+      "source": "project roadmap at time of writing; v1.5.3 is beta. Cited, not verified by this run."
+    }
+  ],
+
+  "non_findings_honesty": {
+    "note": "An early file-backed ATTACH failed with 'Catalog remote does not exist', but a clean retry (after clearing the stale port) attached fine (t_rows=0). This was a port-race test artifact, not a quack file-vs-memory limit, so it is NOT reported as a limitation."
+  }
+}
