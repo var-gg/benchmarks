@@ -1,0 +1,14 @@
+[mint] fresh leaf: lifetime=20s NotAfter_epoch=1782209027
+[server] listening 127.0.0.1:53822 with the short-lived cert
+
+--- T0: renewal is healthy, cert is fresh ---
+[valid] HANDSHAKE OK  (NotAfter=Jun 23 10:03:47 2026 GMT)
+
+--- simulating a STALLED renewal: nothing renews; waiting 23s past NotAfter ---
+[expired] HANDSHAKE FAILED  verify_code=10 reason='certificate has expired'
+
+=== RESULT ===
+before expiry: OK   after expiry (renewal stalled): FAIL
+interpretation: the cert lifetime is a hard deadline. The instant renewal
+stalls past NotAfter, every verifying client breaks at the TLS handshake —
+no grace period. That is the 'conveyor belt that jams', not a calendar reminder.

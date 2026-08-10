@@ -1,0 +1,50 @@
+{
+  "run_id": "2026-06-23-short-lived-tls-renewal",
+  "post_slug": "short-lived-tls-renewal",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/short-lived-tls-renewal"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-23T10:06:00Z",
+  "operator": "curioustore",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64 (Git Bash)",
+    "openssl": "3.5.6",
+    "python": "CPython 3.11 (cryptography 48)",
+    "docker": "pebble runs as a container for Part B only",
+    "note": "This is a TLS-behavior and ACME-protocol capability check, not a timing benchmark. Part A is fully deterministic (local OpenSSL, no network). Part B drives a real ACME state machine against a local pebble CA; the numbers it returns (144h lifetime, window widths) are pebble defaults, not Let's Encrypt policy."
+  },
+
+  "subject": {
+    "name": "short-lived-cert renewal (expiry semantics + ACME ARI)",
+    "components": {
+      "openssl": "3.5.6 (Part A local CA + leaf + TLS probe)",
+      "pebble": "ghcr.io/letsencrypt/pebble:latest",
+      "acme_client": "hand-written pure-Python ACME (ES256 JWS, cryptography 48, no acme/certbot lib)"
+    },
+    "note": "pebble was pulled as :latest at run time (2026-06-23) — NOT version-pinned. This is a real limitation: re-running today pulls a newer pebble and the exact lifetime/window may drift. The mechanism under test (ARI wire format, CertID derivation, shortlived-profile ordering) follows draft-ietf-acme-ari-03, now finalized as RFC 9773, and is stable across pebble versions; the specific 144h/window numbers are not."
+  },
+  "baseline": {
+    "name": "long-lived certificate + calendar/cron renewal",
+    "note": "Compared conceptually in the post (why a fixed cron date silently inverts meaning once certs get short). No long-lived-cert path was executed as a measured baseline; the contrast is by capability, not by measured timing."
+  },
+
+  "cross_reference": {
+    "real_ca_numbers": "NOT measured. The 2026-03 -> 2029 industry timeline (398d -> 47d) and Let's Encrypt's real short-lived profile lifetimes/windows are cited from the CA/B Forum + Let's Encrypt announcements, explicitly flagged as not-firsthand. Only pebble's default (144h) was observed here.",
+    "dcv_failures": "NOT measured. Part B ran pebble with PEBBLE_VA_ALWAYS_VALID=1, which auto-satisfies domain validation. Real DCV failure modes are abstracted by Part A's 'renewal stalled' case: whatever the cause, once NotAfter passes the outcome is identical (hard handshake failure)."
+  },
+
+  "data_source": {
+    "name": "pebble (local test CA)",
+    "live": false,
+    "drift_warning": "pebble is a test server, not Let's Encrypt. The lifetime (144h) and suggestedWindow widths in results.json are pebble defaults captured on 2026-06-23. They demonstrate the ARI mechanism, not production CA policy. pebble was not version-pinned (:latest); re-running may surface a different build."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "harness + captured logs committed; per-run generated keys/certs discarded",
+    "note": "Part A generates throwaway EC keys, a 1-day local root CA, and short-lived leaf certs on every run (ca.key/ca.crt/leaf.*). These are non-deterministic (fresh keys + wall-clock validity each run) and are intentionally NOT committed, same rationale as a non-deterministic screenshot. The committed evidence is the harness (run.sh, tls_probe.py, acme_ari.py) plus the captured run logs (partA/probe-result.txt, partB/acme-ari-result.txt) from 2026-06-23. See checksums.txt for integrity hashes of the committed files."
+  }
+}

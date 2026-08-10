@@ -1,0 +1,3 @@
+# Part B ACME client deps (Part A needs only stdlib ssl + the openssl binary).
+cryptography==48.0.0
+requests==2.32.3

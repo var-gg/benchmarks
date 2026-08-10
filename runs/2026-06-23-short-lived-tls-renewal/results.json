@@ -1,0 +1,68 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies TLS expiry semantics (Part A, deterministic) and ACME ARI protocol behavior (Part B, real ACME against a local pebble CA). No statistical distribution applies: Part A is a pass/fail handshake observation with a fixed OpenSSL verify code; Part B is a protocol walk whose returned window/lifetime are CA-policy values, reported as observed on 2026-06-23.",
+
+  "part_a_expiry_semantics": {
+    "environment": "OpenSSL 3.5.6, local EC P-256 root CA, short-lived leaf (20s), Python ssl client with CERT_REQUIRED + hostname check",
+    "source_of_truth": "partA/probe-result.txt",
+    "observations": [
+      {
+        "id": "fresh_handshake_ok",
+        "claim": "While the short-lived cert is still within NotAfter, a verifying client completes the TLS handshake.",
+        "evidence": "partA/probe-result.txt -> [valid] HANDSHAKE OK",
+        "value": "OK (NotAfter=Jun 23 10:03:47 2026 GMT)"
+      },
+      {
+        "id": "expiry_is_hard_deadline",
+        "claim": "The instant NotAfter passes with renewal stalled, the same client breaks AT the TLS handshake — no grace period, application code never runs.",
+        "evidence": "partA/probe-result.txt -> [expired] HANDSHAKE FAILED",
+        "value": "verify_code=10 (X509_V_ERR_CERT_HAS_EXPIRED), reason='certificate has expired'"
+      }
+    ]
+  },
+
+  "part_b_acme_ari": {
+    "environment": "pebble (ghcr.io/letsencrypt/pebble:latest, PEBBLE_VA_ALWAYS_VALID=1), hand-written pure-Python ACME client (ES256 JWS)",
+    "source_of_truth": "partB/acme-ari-result.txt",
+    "observations": [
+      {
+        "id": "ca_picks_lifetime",
+        "claim": "Ordering under the 'shortlived' profile yields a lifetime the CA chose, not the client.",
+        "evidence": "partB/acme-ari-result.txt -> [cert] Lifetime : 144.0 hours",
+        "value": "NotBefore 2026-06-23T10:06:25Z, NotAfter 2026-06-29T10:06:24Z, lifetime 144h (pebble default, not LE policy)"
+      },
+      {
+        "id": "ari_returns_window",
+        "claim": "The CA's renewalInfo (ARI) endpoint returns a suggested renewal TIME WINDOW plus a Retry-After, not a single instant.",
+        "evidence": "partB/acme-ari-result.txt -> [ARI] HTTP 200",
+        "value": "suggestedWindow [2026-06-26T10:06:24Z .. 2026-06-28T10:06:24Z] = [NotAfter-72h, NotAfter-24h] ~ 50%-83% of lifetime; Retry-After 21600s (6h)"
+      },
+      {
+        "id": "certid_derived_from_cert",
+        "claim": "The ARI path segment (CertID) is derived from the certificate itself (AKI keyIdentifier + serial), so each cert has a unique ARI URL.",
+        "evidence": "partB/acme_ari.py computes b64url(AKI) + '.' + b64url(serial DER octets)",
+        "value": "3GDLB8LPWmGDwp_DBKNDj7uiI2Q.BSs2vQAelpg"
+      },
+      {
+        "id": "draft_path_vs_rfc",
+        "claim": "pebble still exposes the ARI endpoint under the draft path name; the client must read renewalInfo from the directory rather than hardcoding it.",
+        "evidence": "directory.renewalInfo -> https://localhost:14000/draft-ietf-acme-ari-03/renewalInfo",
+        "value": "path carries 'draft-ietf-acme-ari-03'; the standard itself is finalized as RFC 9773 (cited)"
+      }
+    ]
+  },
+
+  "cited_not_measured": [
+    { "claim": "Public TLS cert max lifetime shrinks from 2026-03, reaching 47 days by 2029 (398d -> 200d -> 100d -> 47d).", "source": "CA/Browser Forum ballot SC-081 / Let's Encrypt announcements" },
+    { "claim": "ARI is finalized as RFC 9773 (was draft-ietf-acme-ari).", "source": "IETF RFC 9773", "url": "https://www.rfc-editor.org/rfc/rfc9773" },
+    { "claim": "Real Let's Encrypt short-lived profile lifetimes/windows differ from pebble's 144h default.", "source": "Let's Encrypt docs (pebble is a test CA, 'without actual enforcement')" },
+    { "claim": "ARI client support: Certbot 4.1.0+, etc.", "source": "post's client support table, from each client's changelog/docs" },
+    { "claim": "Short lifetimes let mass-revocation be absorbed by expiry, reducing OCSP/CRL dependence.", "source": "ARI design rationale (reasoned, not measured here)" }
+  ],
+
+  "not_measured": {
+    "real_ca_policy": "Only pebble's default 144h + window were observed. Production CA numbers are cited.",
+    "dcv_failures": "Domain validation was auto-satisfied (PEBBLE_VA_ALWAYS_VALID=1). DCV failure is abstracted by Part A's stall case.",
+    "pebble_version": "pebble pulled as :latest, not pinned — exact numbers may drift on re-run; the mechanism does not."
+  }
+}

@@ -1,0 +1,19 @@
+[acct] created kid=...8dd18710f90a
+[order] status=pending profile=shortlived
+[order] after authz: status=ready
+
+[cert] issued under 'shortlived' profile
+  NotBefore : 2026-06-23T10:06:25+00:00
+  NotAfter  : 2026-06-29T10:06:24+00:00
+  Lifetime  : 144.0 hours  (short-lived: the CA, not you, picked this)
+
+[ARI] GET e-ari-03/renewalInfo/3GDLB8LPWmGDwp_DBKNDj7uiI2Q.BSs2vQAelpg  -> HTTP 200
+  suggestedWindow.start : 2026-06-26T10:06:24Z
+  suggestedWindow.end   : 2026-06-28T10:06:24Z
+  explanationURL        : -
+  Retry-After header     : 21600
+
+  interpretation: the CA itself hands back a TIME WINDOW to renew in.
+  A correct client renews at a random point inside this window, not on a
+  fixed cron. That is how a fleet avoids a synchronized renewal stampede,
+  and how the CA can pull renewals forward early during a mass-revocation.
