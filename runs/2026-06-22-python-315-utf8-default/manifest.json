@@ -1,0 +1,50 @@
+{
+  "run_id": "2026-06-22-python-315-utf8-default",
+  "post_slug": "python-315-utf8-default",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/python-315-utf8-default",
+    "en": "https://var.gg/en/blog/python-315-utf8-default"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-22T13:05:00Z",
+  "operator": "curioustore",
+
+  "backfilled": true,
+  "backfill_note": "The post was published 2026-06-22. Its original raw harness scripts were not preserved (only the recorded experiment log survived). run.sh + probe.py here are a FAITHFUL RECONSTRUCTION of that experiment, and were freshly re-executed on 2026-08-12 against the same pinned builds on the same class of host (Windows, CP949). The committed probe-result.json is that fresh re-run and reproduces every recorded observation (EXP1/EXP2/EXP7/EXP8/EXP9). This is verification evidence, not a paper claim.",
+  "reverified_at": "2026-08-12T06:45:00Z",
+
+  "kind": "behavior_verification",
+  "note": "This is a default-text-encoding contract check, not a timing benchmark. The result depends on the CPython build and the host ANSI codepage, NOT on CPU/GPU/RAM, so hardware is intentionally omitted. On a UTF-8 host locale the contrast vanishes (both builds default to UTF-8) — that dependence is the point.",
+
+  "environment": {
+    "os": "Windows 11 (10.0.26200)",
+    "ansi_codepage": 949,
+    "ansi_codepage_name": "CP949 (Korean)",
+    "driver_python": "3.11.9",
+    "runner": "run.sh downloads two pinned python.org embeddable builds and runs probe.py under each"
+  },
+
+  "subject": {
+    "name": "cpython-embeddable-amd64",
+    "version": "3.15.0b2",
+    "release_note": "3.15 is the first line to default utf8_mode ON (PEP 686). 3.15.0b2 is a beta; final 3.15.0 was scheduled for 2026-10.",
+    "install": "https://www.python.org/ftp/python/3.15.0/python-3.15.0b2-embed-amd64.zip"
+  },
+  "baseline": {
+    "name": "cpython-embeddable-amd64",
+    "version": "3.14.6",
+    "release_note": "Current stable line at run time; utf8_mode OFF by default (locale-derived text encoding = CP949 on this host).",
+    "install": "https://www.python.org/ftp/python/3.14.6/python-3.14.6-embed-amd64.zip"
+  },
+
+  "cited_not_measured": {
+    "final_3_15_0": "Measured on 3.15.0b2 (beta). Behavior of the final 3.15.0 release is expected identical for PEP 686 but is cited, not measured here.",
+    "full_installer_store_builds": "Measured on the embeddable amd64 distribution. The full installer / Microsoft Store 'site' configuration differs in packaging but not in the default text-encoding contract; not separately measured."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none — this run has no large raw artifacts",
+    "note": "run.sh downloads the two embeddable zips into a temp dir and deletes them on exit; they are pinned by URL, not committed. The deterministic evidence (probe-result.json) is small and committed. See checksums.txt for integrity hashes of the committed harness + evidence."
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "generated_by": "probe.py",
+  "note": "Default text-encoding contract + deterministic encoding experiments under two pinned CPython builds on Windows. Meaningful only on a non-UTF-8 ANSI codepage (essay used CP949).",
+  "host_ansi_codepage_hint": 949,
+  "interpreters": {
+    "3.14.6": {
+      "version": "3.14.6",
+      "utf8_mode": 0,
+      "getpreferredencoding": "cp949",
+      "stdout_encoding": "cp949",
+      "getfilesystemencoding": "utf-8",
+      "exp2_write_default": {
+        "n_bytes": 24,
+        "hex": "c7 d1 b1 db 20 b5 a5 c0 cc c5 cd 3a 20 b8 c5 c3 e2 20 31 32 33 34 bf f8"
+      },
+      "s2_bytes_c2af": {
+        "ok": true,
+        "text": "짱"
+      },
+      "s2_bytes_munseo": {
+        "ok": true,
+        "text": "臾몄꽌"
+      },
+      "exp7_subprocess_text": {
+        "raised_to_caller": false,
+        "returncode": 0,
+        "stdout_repr": "'한글상태'",
+        "stdout_lost": false,
+        "reader_thread_decode_error": false,
+        "reader_thread_error_line": null
+      }
+    },
+    "3.15.0b2": {
+      "version": "3.15.0b2",
+      "utf8_mode": 1,
+      "getpreferredencoding": "utf-8",
+      "stdout_encoding": "utf-8",
+      "getfilesystemencoding": "utf-8",
+      "exp2_write_default": {
+        "n_bytes": 32,
+        "hex": "ed 95 9c ea b8 80 20 eb 8d b0 ec 9d b4 ed 84 b0 3a 20 eb a7 a4 ec b6 9c 20 31 32 33 34 ec 9b 90"
+      },
+      "s2_bytes_c2af": {
+        "ok": true,
+        "text": "¯"
+      },
+      "s2_bytes_munseo": {
+        "ok": true,
+        "text": "문서"
+      },
+      "exp7_subprocess_text": {
+        "raised_to_caller": false,
+        "returncode": 0,
+        "stdout_repr": "None",
+        "stdout_lost": true,
+        "reader_thread_decode_error": true,
+        "reader_thread_error_line": "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc7 in position 0: invalid continuation byte"
+      }
+    }
+  },
+  "toggle": {
+    "new_PYTHONUTF8_0": {
+      "utf8_mode": 0,
+      "getpreferredencoding": "cp949"
+    },
+    "new_X_utf8_0": {
+      "utf8_mode": 0,
+      "getpreferredencoding": "cp949"
+    },
+    "old_PYTHONUTF8_1": {
+      "utf8_mode": 1,
+      "getpreferredencoding": "utf-8"
+    }
+  }
+}

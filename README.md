@@ -48,6 +48,7 @@ most public benchmarks, not less.
 | 2026-06-24 | [2026-06-24-playwright-passkey-e2e](./runs/2026-06-24-playwright-passkey-e2e/) | [KO](https://var.gg/ko/blog/playwright-passkey-e2e) | capability_verification (backfill) |
 | 2026-06-23 | [2026-06-23-duckdb-quack-client-server](./runs/2026-06-23-duckdb-quack-client-server/) | [KO](https://var.gg/ko/blog/duckdb-quack-client-server) | capability_verification (backfill) |
 | 2026-06-23 | [2026-06-23-short-lived-tls-renewal](./runs/2026-06-23-short-lived-tls-renewal/) | [KO](https://var.gg/ko/blog/short-lived-tls-renewal) | capability_verification |
+| 2026-06-22 | [2026-06-22-python-315-utf8-default](./runs/2026-06-22-python-315-utf8-default/) | [EN](https://var.gg/en/blog/python-315-utf8-default) · [KO](https://var.gg/ko/blog/python-315-utf8-default) | behavior_verification (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
 <!-- RUNS:END -->
