@@ -1,0 +1,73 @@
+{
+  "kind": "behavior_verification",
+  "note": "Verifies OpenTofu destroy/state semantics via CLI plan verbs and process exit codes, not timing. No statistical distribution applies: for a given tofu version each scenario is a deterministic plan/apply outcome. 'to forget' and 'to destroy' are plan verbs printed by the CLI; exit codes are the process return values.",
+
+  "subject": "opentofu 1.12.0 (re-verified identical on 1.12.3)",
+  "baseline": "opentofu 1.11.10",
+
+  "behaviors_verified": [
+    {
+      "id": "var_driven_prevent_destroy",
+      "claim": "prevent_destroy became an evaluated expression: the same config, with prevent_destroy = var.lock, is accepted by 1.12 but rejected at validate by 1.11.",
+      "evidence": "fixtures/exp-a.tf",
+      "observations": {
+        "1.11.10": "validate error: 'Variables not allowed' / 'Variables may not be used here.' — plan never runs.",
+        "1.12.0": "accepted; plan/apply OK, note.txt created on disk.",
+        "1.12.0 destroy -var lock=true": "BLOCKED: 'Resource instance cannot be destroyed' (prevent_destroy set). note.txt PRESENT. Hint suggests -exclude=, not legacy -target.",
+        "1.12.0 destroy -var lock=false": "ALLOWED: 'Plan: 0 to add, 0 to change, 1 to destroy' -> note.txt GONE."
+      },
+      "changelog": "#3474/#3507 (prevent_destroy may reference symbols e.g. input variables)"
+    },
+    {
+      "id": "managed_destroy_false_forget",
+      "claim": "lifecycle { destroy = false } on a managed resource turns destroy into a 'forget' that keeps the real object, and OpenTofu deliberately exits non-zero to flag the orphan.",
+      "evidence": "fixtures/exp-b.tf",
+      "observations": {
+        "apply": "keep.txt on disk + local_file.keep in state.",
+        "destroy": "'Plan: 0 to add, 0 to change, 0 to destroy, 1 to forget.' — new plan verb 'forget'. keep.txt SURVIVED (orphan), state entry removed (tofu state list empty). exit code = 1, message: 'Destroy was successful but left behind forgotten instances' + '...may continue to incur charges' + suggests -suppress-forget-errors.",
+        "destroy -suppress-forget-errors": "same forget, exit code = 0 (guardrail silenced)."
+      },
+      "changelog": "#3409 (new lifecycle meta-arg destroy), #3588 (-suppress-forget-errors)"
+    },
+    {
+      "id": "precedence_destroy_false_over_prevent_destroy",
+      "claim": "When both destroy = false and prevent_destroy = true are set on one resource, destroy = false wins: the resource is silently forgotten, prevent_destroy does NOT block it.",
+      "evidence": "fixtures/exp-d.tf",
+      "observations": {
+        "destroy": "'Plan: 0 to add, 0 to change, 0 to destroy, 1 to forget.' both.txt PRESENT. prevent_destroy did NOT block. Matches docs: 'prevent_destroy will not have any effect.'"
+      },
+      "footgun": "A resource you believe is protected by prevent_destroy is silently forgotten if destroy = false is also present."
+    },
+    {
+      "id": "removed_block_default_forget",
+      "claim": "A removed block with NO lifecycle defaults to FORGET (keep real object) on OpenTofu, versus DESTROY on Terraform — an identical-looking removed block behaves differently across the two tools.",
+      "evidence": "fixtures/exp-r-step1.tf -> fixtures/exp-r-step2.tf",
+      "observations": {
+        "opentofu 1.12.3": "plan warns 'Missing lifecycle from the removed block' + '# local_file.demo will be removed from the OpenTofu state but will not be destroyed' -> 'Plan: ... 1 to forget.' apply: '0 added, 0 changed, 0 destroyed, 1 forgotten.' demo.txt PRESENT."
+      },
+      "cited_not_measured": "Terraform's default (destroy when lifecycle omitted) is cited from HashiCorp docs; no terraform binary was run locally."
+    },
+    {
+      "id": "pretty_printed_state",
+      "claim": "The local backend now writes pretty-printed (indented) JSON state, making before/after diffs readable in version control.",
+      "evidence": "run.sh cats terraform.tfstate after Exp B apply",
+      "observations": {
+        "1.12.0": "terraform.tfstate is indented JSON, version 4, terraform_version '1.12.0'."
+      },
+      "changelog": "#1947 (local backend writes pretty-printed JSON state)"
+    }
+  ],
+
+  "changelog_confirmed": [
+    "#3474/#3507: prevent_destroy may reference symbols (e.g. input variables).",
+    "#3409: new lifecycle meta-arg 'destroy' (=false -> remove from state without provider destroy).",
+    "#3588: tofu destroy -suppress-forget-errors (zero exit when resources forgotten).",
+    "#1947: local backend writes pretty-printed JSON state.",
+    "v1.12.x supported until 2027-02-01."
+  ],
+
+  "not_measured": {
+    "terraform": "No terraform binary installed locally. Exp R cross-tool default (destroy vs forget) is cited from HashiCorp docs, not measured.",
+    "cloud_providers": "Verified with hashicorp/local only. The 'incur charges' warning is generic to forgotten remote objects; with local_file the orphan is a leftover file, which keeps the mechanism visible and safe. destroy=false / forget is core-plan-level behavior, provider-agnostic by design; not every provider's interaction was tested."
+  }
+}
