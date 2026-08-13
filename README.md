@@ -51,6 +51,7 @@ most public benchmarks, not less.
 | 2026-06-22 | [2026-06-22-python-315-utf8-default](./runs/2026-06-22-python-315-utf8-default/) | [EN](https://var.gg/en/blog/python-315-utf8-default) · [KO](https://var.gg/ko/blog/python-315-utf8-default) | behavior_verification (backfill) |
 | 2026-06-21 | [2026-06-21-opentofu-1-12-destroy-semantics](./runs/2026-06-21-opentofu-1-12-destroy-semantics/) | [KO](https://var.gg/ko/blog/opentofu-1-12-destroy-semantics) | behavior_verification (backfill) |
 | 2026-06-20 | [2026-06-20-uv-audit-supply-chain](./runs/2026-06-20-uv-audit-supply-chain/) | [EN](https://var.gg/en/blog/uv-audit-supply-chain) · [KO](https://var.gg/ko/blog/uv-audit-supply-chain) | benchmark (backfill) |
+| 2026-06-19 | [2026-06-19-nats-jetstream-scheduler](./runs/2026-06-19-nats-jetstream-scheduler/) | [KO](https://var.gg/ko/blog/nats-jetstream-scheduler) | capability_verification (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
 <!-- RUNS:END -->
 

@@ -1,0 +1,15 @@
+# Nats-Schedule header values tested against nats-server 2.14.2, and the expected outcome.
+# run.sh iterates these: publishes a control message carrying `Nats-Schedule: <value>` to a
+# --allow-schedules stream, then judges acceptance by whether a scheduled control message
+# persists in the store (accept) or the server returns an error (reject).
+# Columns: value <TAB> expected  (expected = accept | reject)
+@every 4s	accept
+@every 1s	accept
+@at 2026-06-19T08:00:00Z	accept
+@hourly	accept
+* * * * * *	accept
+*/2 * * * * *	accept
+* * * * *	reject
+*/1 * * * *	reject
+@after 5s	reject
+@in 5s	reject

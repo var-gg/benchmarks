@@ -1,0 +1,65 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies the NATS 2.14 JetStream message-scheduler protocol: which Nats-Schedule values the server accepts, a CLI-vs-server contract mismatch, rollup replace, source downsampling, and restart durability. These are deterministic accept/reject and render-style observations on nats-server 2.14.2, not a timing distribution. One small timing figure (inter-arrival drift) is included and labeled.",
+
+  "subject": "nats-server 2.14.2 (JetStream API Level 4)",
+  "tool": "nats CLI 0.4.0",
+  "method": "A message-scheduler stream is created with --allow-schedules. A control message carrying a Nats-Schedule header is published; acceptance is judged by whether the control message persists in the store (nats stream get) versus the server returning an error. See run.sh + fixture/schedule-cases.tsv.",
+
+  "schedule_syntax_matrix": {
+    "source_of_truth": "fixture/schedule-cases.tsv (reproduced by run.sh)",
+    "cases": [
+      { "value": "@every 4s", "accepted": true, "note": "repeating interval" },
+      { "value": "@every 1s", "accepted": true, "note": "16 firings, inter-arrival exactly 1.000s, drift 0 (wall-clock aligned)" },
+      { "value": "@at 2026-06-19T08:00:00Z", "accepted": true, "note": "one-shot absolute RFC3339 time" },
+      { "value": "@hourly", "accepted": true, "note": "macro" },
+      { "value": "* * * * * *", "accepted": true, "note": "6-field cron WITH seconds — NATS cron is 6-field" },
+      { "value": "*/2 * * * * *", "accepted": true, "note": "6-field cron" },
+      { "value": "* * * * *", "accepted": false, "note": "standard 5-field Unix crontab is REJECTED" },
+      { "value": "*/1 * * * *", "accepted": false, "note": "5-field rejected" },
+      { "value": "@after 5s", "accepted": false, "note": "relative one-shot pattern unsupported" },
+      { "value": "@in 5s", "accepted": false, "note": "relative one-shot pattern unsupported" }
+    ]
+  },
+
+  "cli_server_mismatch": {
+    "id": "schedule_after_error_10189",
+    "claim": "The CLI flag `nats publish --schedule-after=DURATION` (documented by CLI 0.4.0 as 'after a certain duration') is REJECTED by the 2.14.2 server with error 10189 'message schedules pattern is invalid'.",
+    "evidence": "5s and 30s both reproduced 5x, all failing. The CLI surfaces a convenience flag that emits a pattern (@after/@in family) the 2.14.2 server does not implement — a CLI-vs-server contract mismatch.",
+    "workaround": "Build the relative one-shot on the caller side as @at <now+duration> and send that.",
+    "trap": "Feeding a standard 5-field crontab is silently rejected — the first pitfall for a user expecting 'minute-granularity cron'."
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "rollup_replace",
+      "claim": "Because scheduler control messages carry Nats-Rollup: sub, re-publishing a new schedule to the SAME subject atomically overwrites the previous one.",
+      "evidence": "r.job set to @every 5s, then 1s later re-published as @every 1s: exactly one control message remains (replaced) and the firing cadence switches to 1s (6 firings in 6s). Change/cancel a schedule by re-publishing/deleting on the same subject."
+    },
+    {
+      "id": "source_downsample",
+      "claim": "Nats-Schedule-Source makes each tick emit only the LATEST value seen on the source subject — a downsampler.",
+      "evidence": "@every 2s + source=src.sensor, then reading-1..30 flooded at 0.3s spacing into src.sensor: target sf.sensor emitted only each 2s tick's latest value: reading-7, 13, 19, 25, 30, 30. Without a source, the control message's own body is re-published every tick.",
+      "use_case": "telemetry / 'last value every N seconds' sampling of a high-frequency source."
+    },
+    {
+      "id": "restart_durability",
+      "claim": "Schedules survive a server restart; a missed one-shot fires once on recovery; a missed repeating schedule does NOT backfill — it resumes forward only.",
+      "evidence": "@every 2s + a one-shot @at due at :39 during downtime -> server killed 22:06:34 -> ~18s down -> restarted with the same -sd store. Observed: schedules survived (persisted as stream messages); the overdue one-shot fired exactly once on recovery (df.once: 1, not dropped, not duplicated); @every did not replay the ~9 missed ticks (~+5 firings at ~8s after restart, i.e. 2s cadence resumed). No catch-up thundering herd = safe default."
+    }
+  ],
+
+  "timing_observation": {
+    "id": "every_1s_drift",
+    "value": "16 firings at @every 1s had inter-arrival exactly 1.000s, drift 0",
+    "basis": "second-granularity store timestamps; sub-millisecond drift was NOT measured",
+    "note": "wall-clock aligned; the one quantitative figure in this run."
+  },
+
+  "honest_limits": [
+    "Single-node verification only. JetStream Raft replication, leader failover, and --replicas>=3 guarantees were NOT verified here. Any 'the scheduler gives you distributed durability' claim is out of this bench's scope.",
+    "at-least-once delivery model — firing messages may be duplicated (consumer-side idempotency needed), same as ordinary JetStream.",
+    "Accuracy is measured against second-granularity store timestamps; sub-ms drift is not measured. Second-alignment is accurate at 1s/2s/3s cadence.",
+    "All results are pinned to nats-server 2.14.2 + nats CLI 0.4.0. A patch release may change CLI flags or accepted syntax."
+  ]
+}

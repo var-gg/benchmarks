@@ -1,0 +1,44 @@
+{
+  "run_id": "2026-06-19-nats-jetstream-scheduler",
+  "post_slug": "nats-jetstream-scheduler",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/nats-jetstream-scheduler"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-19T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The experiment ran on 2026-06-19 on a single Windows node; the downloaded nats-server / nats CLI binaries and the temporary JetStream store were deleted after the run per the finite-disk policy (received_images: none — no Docker was used). No hashes were captured at the time (this predates packaging). run.sh + fixture/schedule-cases.tsv are reconstructed from the run's recorded methodology so a third party can reproduce the METHOD against the same pinned versions. Unlike a live-DB benchmark, the findings here are deterministic protocol behaviors, so re-running with nats-server 2.14.2 + nats CLI 0.4.0 should reproduce them.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64, single node (native, no Docker/WSL)",
+    "note": "This is a scheduler protocol-behavior and syntax-acceptance check, plus a small timing observation (inter-arrival drift). It is NOT a throughput benchmark; CPU/RAM do not change the accept/reject or durability outcomes."
+  },
+
+  "subject": {
+    "name": "nats-server",
+    "version": "2.14.2",
+    "build": "windows-amd64",
+    "install": "GitHub release nats-server v2.14.2 (standalone zip)",
+    "note": "JetStream API Level 4. Server started with: nats-server.exe -js -sd <store> -p 4222 -m 8222. Message-scheduler streams are created with --allow-schedules."
+  },
+  "tool": {
+    "name": "nats CLI",
+    "version": "0.4.0",
+    "build": "windows-amd64",
+    "install": "GitHub release nats-io/natscli v0.4.0 (standalone zip)"
+  },
+
+  "data_source": {
+    "name": "none (local single node)",
+    "live": false,
+    "note": "No external live database. All outcomes are produced by the local nats-server under test; nothing drifts between runs given the same pinned versions."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "Binaries + JetStream store deleted after the run. No hashes were captured at the time. Reconstructed harness (run.sh + fixture) is committed instead; that is stated plainly rather than fabricating hashes. results.json holds the behaviors and the one timing figure observed on 2026-06-19."
+  }
+}
