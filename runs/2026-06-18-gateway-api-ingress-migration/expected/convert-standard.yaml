@@ -1,0 +1,152 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-1.1.0
+  name: nginx
+  namespace: web
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - hostname: var.gg
+    name: var-gg-http
+    port: 80
+    protocol: HTTP
+  - hostname: var.gg
+    name: var-gg-https
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - group: ""
+        kind: Secret
+        name: vargg-tls
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-1.1.0
+  name: vargg-canary-var-gg
+  namespace: web
+spec:
+  hostnames:
+  - var.gg
+  parentRefs:
+  - name: nginx
+    port: 443
+    sectionName: var-gg-https
+  rules:
+  - backendRefs:
+    - name: frontend
+      port: 3000
+      weight: 90
+    - name: frontend-next
+      port: 3000
+      weight: 10
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replaceFullPath: /$2
+          type: ReplaceFullPath
+    - cors:
+        allowCredentials: true
+        allowHeaders:
+        - DNT
+        - Keep-Alive
+        - User-Agent
+        - X-Requested-With
+        - If-Modified-Since
+        - Cache-Control
+        - Content-Type
+        - Range
+        - Authorization
+        allowMethods:
+        - GET
+        - PUT
+        - POST
+        - DELETE
+        - PATCH
+        - OPTIONS
+        allowOrigins:
+        - https://var.gg
+        maxAge: 1728000
+      type: CORS
+    matches:
+    - path:
+        type: RegularExpression
+        value: (?i)/.*
+  - backendRefs:
+    - name: backend
+      port: 8000
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replaceFullPath: /$2
+          type: ReplaceFullPath
+    - cors:
+        allowCredentials: true
+        allowHeaders:
+        - DNT
+        - Keep-Alive
+        - User-Agent
+        - X-Requested-With
+        - If-Modified-Since
+        - Cache-Control
+        - Content-Type
+        - Range
+        - Authorization
+        allowMethods:
+        - GET
+        - PUT
+        - POST
+        - DELETE
+        - PATCH
+        - OPTIONS
+        allowOrigins:
+        - https://var.gg
+        maxAge: 1728000
+      type: CORS
+    matches:
+    - path:
+        type: RegularExpression
+        value: (?i)/api(/|$)(.*).*
+status:
+  parents: []
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-1.1.0
+  name: vargg-canary-var-gg-http
+  namespace: web
+spec:
+  hostnames:
+  - var.gg
+  parentRefs:
+  - name: nginx
+    port: 80
+  rules:
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+    matches:
+    - path:
+        type: RegularExpression
+        value: (?i)/.*
+  - filters:
+    - requestRedirect:
+        scheme: https
+        statusCode: 308
+      type: RequestRedirect
+    matches:
+    - path:
+        type: RegularExpression
+        value: (?i)/api(/|$)(.*).*
+status:
+  parents: null

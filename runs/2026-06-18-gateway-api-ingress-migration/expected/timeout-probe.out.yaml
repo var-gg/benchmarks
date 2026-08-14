@@ -1,0 +1,45 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-1.1.0
+  name: nginx
+  namespace: default
+spec:
+  gatewayClassName: nginx
+  listeners:
+  - hostname: app.example.test
+    name: app-example-test-http
+    port: 80
+    protocol: HTTP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gateway.networking.k8s.io/generator: ingress2gateway-1.1.0
+  name: timeout-probe-app-example-test
+  namespace: default
+spec:
+  hostnames:
+  - app.example.test
+  parentRefs:
+  - name: nginx
+  rules:
+  - backendRefs:
+    - name: web
+      port: 8080
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          replaceFullPath: /$2
+          type: ReplaceFullPath
+    matches:
+    - path:
+        type: RegularExpression
+        value: (?i)/api(/|$)(.*).*
+    timeouts:
+      request: 5m0s
+status:
+  parents: []

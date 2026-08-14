@@ -1,0 +1,36 @@
+{
+  "run_id": "2026-06-18-gateway-api-ingress-migration",
+  "post_slug": "gateway-api-ingress-migration",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/gateway-api-ingress-migration"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-18T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This run was executed on 2026-06-18 (the post's publish date) and its artifacts were preserved, so unlike a reconstructed backfill the committed expected/ outputs are the ACTUAL tool output from that day. It is packaged into this repo after the fact (2026-08-15). ingress2gateway print --input-file is a pure offline transform (no cluster, no network, no timing), so run.sh regenerates byte-comparable output from the committed fixtures against a pinned v1.1.0 binary.",
+
+  "kind": "conversion_verification",
+  "environment": {
+    "os": "Windows 11",
+    "runner": "ingress2gateway CLI, --input-file mode (no Kubernetes cluster)",
+    "note": "This is a config-translation correctness check, not a timing benchmark. The conversion is a deterministic offline transform; hardware does not affect the result and is intentionally omitted."
+  },
+
+  "subject": {
+    "name": "ingress2gateway",
+    "version": "1.1.0",
+    "install": "go install github.com/kubernetes-sigs/ingress2gateway@v1.1.0",
+    "note": "Built Go 1.25.9. Generator annotation on all output objects: ingress2gateway-1.1.0. Provider under test: ingress-nginx; emitter: standard."
+  },
+  "baseline": {
+    "name": "nginx ingress annotations",
+    "note": "The 'before' side is the annotated networking.k8s.io/v1 Ingress in fixtures/. The comparison is what the Gateway API core absorbs vs what it drops — by capability, not by timing."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "none discarded — all evidence for this run is small and committed",
+    "note": "The full converted manifests (expected/convert-standard.yaml, expected/timeout-probe.out.yaml) and the tool's stderr warnings (expected/*.warn.txt) are the deterministic evidence and are committed in full. Re-running run.sh against the committed fixtures with the pinned v1.1.0 binary regenerates them; diff the regenerated output against expected/."
+  }
+}

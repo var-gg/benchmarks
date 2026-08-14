@@ -1,0 +1,106 @@
+{
+  "kind": "conversion_verification",
+  "note": "Verifies how ingress2gateway v1.1.0 translates a real annotated nginx Ingress into Gateway API objects — what the core absorbs, what it drops, and where the translation is syntactically valid but semantically wrong. Deterministic offline transform; no statistical distribution applies. Source of truth: the committed expected/*.yaml and expected/*.warn.txt.",
+
+  "subject": "ingress2gateway 1.1.0 (provider: ingress-nginx, emitter: standard)",
+
+  "absorbed_into_core": [
+    {
+      "id": "canary_native_split",
+      "claim": "A separate canary Ingress (canary-weight: 10) merges with the main route into ONE HTTPRoute with native weighted backendRefs (frontend-next weight 10 + frontend weight 90). The annotation hack becomes a first-class field.",
+      "evidence": "expected/convert-standard.yaml -> HTTPRoute vargg-canary-var-gg, rule with backendRefs[].weight",
+      "verified": true
+    },
+    {
+      "id": "cors_standard_filter",
+      "claim": "enable-cors + cors-allow-origin become a type: CORS filter, emitted in STANDARD output with NO experimental flag — firsthand confirmation that the CORS filter graduated to Standard.",
+      "evidence": "expected/convert-standard.yaml -> HTTPRoute filters[].type: CORS (allowOrigins/allowMethods/maxAge populated)",
+      "verified": true
+    },
+    {
+      "id": "ssl_redirect",
+      "claim": "ssl-redirect becomes a separate HTTP(:80) HTTPRoute with a type: RequestRedirect filter forcing HTTP -> HTTPS.",
+      "evidence": "expected/convert-standard.yaml -> :80 listener + HTTPRoute with filters[].type: RequestRedirect",
+      "verified": true
+    },
+    {
+      "id": "rewrite_urlrewrite",
+      "claim": "rewrite-target becomes a type: URLRewrite filter with ReplaceFullPath.",
+      "evidence": "expected/convert-standard.yaml + expected/timeout-probe.out.yaml -> filters[].type: URLRewrite, replaceFullPath",
+      "verified": true
+    },
+    {
+      "id": "tls_certificaterefs",
+      "claim": "TLS (cert-manager secret) becomes a Gateway listener certificateRefs (Secret ref), with 443 and 80 listeners split.",
+      "evidence": "expected/convert-standard.yaml -> Gateway listeners var-gg-https (443, tls.certificateRefs: vargg-tls) + var-gg-http (80)",
+      "verified": true
+    },
+    {
+      "id": "regex_path_type",
+      "claim": "The /api(/|$)(.*) regex path becomes matches[].path.type: RegularExpression.",
+      "evidence": "expected/convert-standard.yaml + expected/timeout-probe.out.yaml -> path.type: RegularExpression",
+      "verified": true
+    }
+  ],
+
+  "dropped_with_warning": [
+    {
+      "id": "limit_rps",
+      "claim": "limit-rps (rate limit) is Unsupported and dropped — rate limiting is still outside the Gateway API core.",
+      "evidence": "expected/convert-standard.warn.txt -> WARN 'Unsupported annotation ... limit-rps'",
+      "verified": true
+    },
+    {
+      "id": "configuration_snippet",
+      "claim": "configuration-snippet (raw nginx) is Unsupported and dropped — the escape hatch disappears; the hardest part of any real migration.",
+      "evidence": "expected/convert-standard.warn.txt -> WARN 'Unsupported annotation ... configuration-snippet'",
+      "verified": true
+    },
+    {
+      "id": "force_ssl_redirect",
+      "claim": "force-ssl-redirect is flagged Unsupported (though the ssl-redirect RequestRedirect path covers it in practice).",
+      "evidence": "expected/convert-standard.warn.txt -> WARN 'Unsupported annotation ... force-ssl-redirect'",
+      "verified": true
+    },
+    {
+      "id": "proxy_body_size",
+      "claim": "proxy-body-size is dropped by STANDARD_EMITTER on the grounds that 'most implementations have reasonable defaults'.",
+      "evidence": "expected/convert-standard.warn.txt -> WARN STANDARD_EMITTER '... proxy-body-size ... reasonable body size and buffering defaults'",
+      "verified": true
+    },
+    {
+      "id": "url_normalization",
+      "claim": "Gateway API cannot configure URL normalization (RFC 3986 sec 6); the tool warns.",
+      "evidence": "expected/*.warn.txt -> WARN STANDARD_EMITTER 'does not support configuring URL normalization'",
+      "verified": true
+    }
+  ],
+
+  "converted_but_semantically_broken": [
+    {
+      "id": "capture_group_leak",
+      "claim": "The nginx rewrite-target /$2 is copied verbatim into ReplaceFullPath: /$2. Gateway API URLRewrite does NOT interpret nginx regex backreferences ($2) — syntax was translated but meaning is broken. Applying the output as-is misroutes traffic. The tool emits NO capture-group warning here (v1.1.0), so it leaks silently.",
+      "evidence": "expected/timeout-probe.out.yaml -> urlRewrite.path.replaceFullPath: /$2 (literal); NO capture-group warning in expected/timeout-probe.warn.txt",
+      "verified": true,
+      "severity": "high — this is the most honest firsthand finding: the converter is a starting point, not an answer"
+    },
+    {
+      "id": "tcp_timeout_semantic_shift",
+      "claim": "proxy-read-timeout: 30 (a 30s TCP idle timeout) becomes timeouts.request: 5m0s — a whole-request timeout, ~10x the TCP value. Not a unit bug; an intentional best-effort approximation (tcpTimeoutMultiplier=10) that changes the meaning. The tool warns to verify.",
+      "evidence": "expected/timeout-probe.out.yaml -> timeouts.request: 5m0s; expected/timeout-probe.warn.txt -> WARN 'ingress-nginx only supports TCP-level timeouts; i2gw has made a best-effort translation ... Please verify'",
+      "verified": true
+    },
+    {
+      "id": "messy_regex_translation",
+      "claim": "Path regex is translated somewhat messily to (?i)/api(/|$)(.*).* with an INFO warning that case-insensitive regex is in use and 'you may want to change this' — hand-fixing needed.",
+      "evidence": "expected/timeout-probe.out.yaml -> path.value: (?i)/api(/|$)(.*).*; expected/*.warn.txt -> INFO 'Using case-insensitive regex path matches'",
+      "verified": true
+    }
+  ],
+
+  "freshness_correction": {
+    "claim": "The scout said 'ingress2gateway 1.0 (2026-03)'; the actual latest at run time was v1.1.0 (released 2026-05-12).",
+    "evidence": "generator annotation ingress2gateway-1.1.0 on every emitted object in expected/*.yaml",
+    "verified": true
+  }
+}
