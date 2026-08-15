@@ -1,0 +1,46 @@
+{
+  "run_id": "2026-06-18-vite-8-rolldown",
+  "post_slug": "vite-8-rolldown",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/vite-8-rolldown",
+    "en": "https://var.gg/en/blog/vite-8-rolldown"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-18T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "This scaffold benchmark was run on 2026-06-18; the two throwaway project trees under tmp/vite-bench/ were deleted per the finite-disk policy. run.sh + fixture/gen-app.mjs are reconstructed from the recorded methodology so a third party can rebuild the identical 24-component app on both Vite versions and re-measure. results.json holds the numbers measured on 2026-06-18 — build ratios are stable, but absolute ms are machine-dependent and will drift.",
+
+  "kind": "benchmark",
+  "environment": {
+    "os": "Windows 11 x64 (native, no WSL/Docker)",
+    "node": "v24.15.0",
+    "npm": "11.12.1",
+    "note": "Absolute build times are machine-dependent; the RATIO (Vite 8 build vs Vite 7 build) is the portable signal, not absolute ms. This is a scaffold bench (a freshly generated representative app), NOT a production-app migration."
+  },
+
+  "subject": {
+    "name": "vite",
+    "version": "8.0.16",
+    "install": "npm i vite@8.0.16 @vitejs/plugin-react@6.0.2 into a clean project",
+    "note": "Vite 8 makes Rolldown the default bundler for both dev pre-bundling and production build; direct deps drop esbuild and rollup in favor of `rolldown@1.0.3`."
+  },
+  "baseline": {
+    "name": "vite",
+    "version": "7.3.5",
+    "install": "npm i vite@7.3.5 @vitejs/plugin-react@5 into an identical project",
+    "invocation": "same source tree, only the vite + plugin-react versions differ"
+  },
+
+  "data_source": {
+    "name": "npm registry",
+    "live": false,
+    "drift_warning": "Dependency facts (rolldown@1.0.3 as vite@8.0.16's direct dep; esbuild/rollup removed; @vitejs/plugin-react@6.0.2 peer vite ^8.0.0) are pinned to exact versions and were re-confirmed stable on 2026-08-16. Package COUNTS (107 vs 62) and native-binary sizes reflect those exact pins on win-x64; a different platform or newer patch releases can shift the counts. Pins do not drift; `latest` would."
+  },
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "tmp/vite-bench/{bench7,bench8}/ (node_modules + dist) were deleted after the run. No per-file hashes were captured at the time. The reconstructed harness is committed instead; that is stated plainly rather than fabricating hashes."
+  }
+}

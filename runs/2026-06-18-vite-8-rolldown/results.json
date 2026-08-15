@@ -1,0 +1,50 @@
+{
+  "kind": "benchmark",
+  "measured_at": "2026-06-18",
+  "note": "Same source tree (React 19 + recharts + lucide-react, 24 chart component modules) built on Vite 7.3.5 (Rollup) vs Vite 8.0.16 (Rolldown), same Windows machine. Timing is self-reported, 2 iterations each (cold + warm) — a quick A/B, not a rigorous distribution. The durable claims are the BUILD ratio and the dependency/output facts, not absolute ms. Dev-server startup is explicitly NOT a durable finding (cache-dependent, see metrics[dev_ready]).",
+
+  "metrics": [
+    {
+      "id": "build_cold",
+      "label": "Production build, cold (fresh, no build cache)",
+      "unit": "ms",
+      "subject":  { "tool": "vite 8.0.16 (Rolldown)", "samples": [167, 157] },
+      "baseline": { "tool": "vite 7.3.5 (Rollup)",    "samples": [2230, 2170] },
+      "ratio": 13.6,
+      "ratio_desc": "~13.4x (run1) / ~13.8x (run2) faster on Vite 8 — stable across both cold runs"
+    },
+    {
+      "id": "build_warm",
+      "label": "Production build, warm (median of repeated runs)",
+      "unit": "ms",
+      "subject":  { "tool": "vite 8.0.16 (Rolldown)", "warm_median": 154, "samples": [153, 155] },
+      "baseline": { "tool": "vite 7.3.5 (Rollup)",    "warm_median": 2185, "samples": [2210, 2160] },
+      "ratio": 14.2,
+      "ratio_desc": "~14.4x / ~13.9x — the marketing '10-30x' lives here (production build), where Rollup was the bottleneck"
+    },
+    {
+      "id": "dev_ready",
+      "label": "Dev server ready time (NOT a durable claim — cache-dependent)",
+      "unit": "ms",
+      "subject":  { "tool": "vite 8.0.16", "cold_deps": 954, "warm_cache": 137 },
+      "baseline": { "tool": "vite 7.3.5", "cold_deps": 710, "warm_cache": 189 },
+      "ratio": null,
+      "ratio_desc": "Vite 8 was SLOWER cold (0.74x) and FASTER warm (1.38x) — noise within the same ballpark. esbuild-based dev was already fast, so Rolldown does not dramatically move dev startup. This axis is reported for honesty, not as a win."
+    }
+  ],
+
+  "findings": [
+    { "id": "rolldown_default", "claim": "Vite 8 makes Rolldown the default; esbuild + rollup leave the direct-dependency set.", "detail": "`npm view vite@8.0.16 dependencies` -> direct dep `rolldown@1.0.3`; esbuild and rollup are gone. Post-install `node_modules/.bin`: Vite 7 = {esbuild, rollup, vite}, Vite 8 = {rolldown, vite}. Re-confirmed 2026-08-16: vite@8.0.16 still pins rolldown 1.0.3." },
+    { "id": "package_count", "claim": "Installed package count drops 107 -> 62.", "detail": "Two engine toolchains (esbuild's per-platform stub packages + rollup's optional native packages) collapse into a single Rolldown binary. Count is for this exact fixture on win-x64; other platforms/patch releases can differ." },
+    { "id": "plugin_major_bump", "claim": "The official React plugin needs a major bump: 5.x -> 6.0.2.", "detail": "@vitejs/plugin-react@5.x peer = vite ^4|5|6|7 (Rollup/esbuild world). @vitejs/plugin-react@6.0.2 peer = vite ^8.0.0 (re-confirmed 2026-08-16) and pulls in `@rolldown/plugin-babel`. So 'Rollup plugins just work' is NOT guaranteed — Rolldown offers a compat layer, but some wiring is rewritten." },
+    { "id": "output_parity", "claim": "13x is not skipped work — outputs are equivalent.", "detail": "Both builds exit 0 and emit a single working JS bundle. Vite 7 index-*.js = 602,411 B; Vite 8 = 588,318 B (Rolldown ~2.3% smaller). Same result made ~13x faster, not a quality regression." },
+    { "id": "install_size", "claim": "Package count down, native binary footprint UP.", "detail": "win-x64: Vite 7 native = @esbuild 11MB + @rollup 5MB ~= 16MB; Vite 8 native = @rolldown 23MB + lightningcss 10MB ~= 33MB (+~17MB, matches the official '+~15MB'). node_modules totals are close (116 vs 114MB) because other transitive deps shrank. Honest one-liner: fewer packages, one heavier Rust binary." },
+    { "id": "dev_model_unchanged", "claim": "The dev server model is still native ESM in Vite 8.", "detail": "Cited from the official Vite 8 migration docs, not measured here: the default dev server keeps browser-native ES modules; a full-bundle dev mode is an experimental/future option, not the default. So 'dev and build are now the same single bundler' is wrong — the substrate (bundling/transform/minify) unified onto Rolldown/Oxc, the dev model did not." }
+  ],
+
+  "explicitly_not_verified": [
+    { "id": "large_real_app", "note": "This is a 24-component scaffold bench, not a real production app. On large apps (thousands of modules, heavy plugin chains) the ratio and compatibility picture can differ. var.gg's own frontend is Next.js, not Vite, so this is not a migration case study." },
+    { "id": "plugin_ecosystem_compat", "note": "Only the React plugin's major bump was verified. Broad Rollup-plugin ecosystem compatibility ('almost fully compatible' per docs) was NOT individually tested and is treated as a caution area in the post, not a measured claim." },
+    { "id": "dev_hmr_latency", "note": "Dev HMR edit-to-update latency was not automatically measured; the post stays build-centric rather than quantifying HMR." }
+  ]
+}
