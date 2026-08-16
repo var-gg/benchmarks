@@ -1,0 +1,62 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies four headline PostgreSQL 19 Beta 1 features by running them inside a postgres:19beta1 container: SQL/PGQ property-graph queries (and their limit), the planner-advice library/extension pair, core REPACK, and two GUC defaults (parallel autovacuum, async I/O). These are deterministic accept/error and 'does it exist / what is the default' observations, not a timing distribution. Everything here is firsthand on the build under test; anything cited from docs is separated out.",
+
+  "subject": "PostgreSQL 19beta1 (Debian 19~beta1-1.pgdg13+1)",
+  "method": "docker run postgres:19beta1, then psql executes fixture/*.sql. Capability is judged by whether a statement parses/executes vs raises a specific ERROR, whether a command/GUC exists, and what a GUC default is (SHOW). See run.sh + fixture/.",
+
+  "capabilities_verified": [
+    {
+      "id": "sql_pgq_fixed_length",
+      "claim": "SQL/PGQ property-graph queries are real: CREATE PROPERTY GRAPH and GRAPH_TABLE ... MATCH ... COLUMNS parse and execute, including fixed multi-hop patterns.",
+      "evidence": "fixture/01-sql-pgq.sql. Built graph 'social' over person/knows (edge table needs its own KEY, else 'no key specified and no suitable primary key exists'). 1-hop MATCH (p1)-[knows]->(p2) returned Kim|Lee, Lee|Park. Fixed 2-hop friend-of-friend returned Kim|Park.",
+      "value": "1-hop + fixed 2-hop both execute"
+    },
+    {
+      "id": "sql_pgq_quantifier_limit",
+      "claim": "SQL/PGQ does NOT support variable-length / quantified paths yet — arbitrary-depth reachability and shortest-path are still not expressible.",
+      "evidence": "fixture/01-sql-pgq.sql. MATCH (p1)-[IS knows]->{1,2}(p3) raised: ERROR: element pattern quantifier is not supported. If you don't know the depth, a recursive CTE is still required. 'Graph query standard landed' must not be read as 'Neo4j-style variable-depth traversal'.",
+      "value": "quantifier -> ERROR (hard limit)"
+    },
+    {
+      "id": "plan_advice_library_and_extension",
+      "claim": "Plan advice ships as TWO things: pg_plan_advice is a LOADable library (not CREATE EXTENSION) exposing EXPLAIN (PLAN_ADVICE); pg_stash_advice is a contrib EXTENSION that stores query_id -> advice for automatic re-application.",
+      "evidence": "fixture/02-plan-advice.sql. Both pg_plan_advice.so and pg_stash_advice.so exist under /usr/lib/postgresql/19/lib/. LOAD 'pg_plan_advice'; then EXPLAIN (PLAN_ADVICE) on a 200k-fact / 1k-dim join printed a 'Generated Plan Advice' block (JOIN_ORDER(d f), NESTED_LOOP_PLAIN(f), SEQ_SCAN(d), BITMAP_HEAP_SCAN(f), NO_GATHER(f d)). Feeding it back via SET pg_plan_advice.advice='JOIN_ORDER(d f)' produced 'Supplied Plan Advice: JOIN_ORDER(d f) /* matched */'. CREATE EXTENSION pg_stash_advice works; control comment 'store and automatically apply plan advice'; 6 functions (pg_create_advice_stash, pg_drop_advice_stash, pg_set_stashed_advice, pg_get_advice_stash_contents, pg_get_advice_stashes, pg_start_stash_advice_worker).",
+      "correction": "Secondary sources call the feature 'pg_plan_advice extension'. Firsthand: pg_plan_advice is a load-time library and the initial EXPLAIN (ADVICE) option name is wrong -> 'unrecognized EXPLAIN option'; the correct option is EXPLAIN (PLAN_ADVICE). The automatic-apply piece is the separate pg_stash_advice extension.",
+      "value": "/* matched */ feedback on supplied advice"
+    },
+    {
+      "id": "repack_in_core",
+      "claim": "REPACK is a core command (absorbs pg_repack), with a CONCURRENTLY option for lock-minimizing reorg without an external tool.",
+      "evidence": "fixture/03-repack.sql. \\h REPACK shows: REPACK [ ( option [, ...] ) ] [ table [ USING INDEX [ index_name ] ] ], option = VERBOSE | ANALYZE | CONCURRENTLY. REPACK person; succeeded. On a 200k-row join_fact, REPACK (CONCURRENTLY, VERBOSE) succeeded even at wal_level=replica (no concurrent writers): 'repacking in physical order ... found 0 removable, 200000 nonremovable row versions in 1082 pages'.",
+      "value": "CONCURRENTLY exists in core"
+    }
+  ],
+
+  "behaviors_observed": [
+    {
+      "id": "repack_concurrently_wal_level",
+      "claim": "REPACK CONCURRENTLY did NOT force wal_level=logical in this build; it ran at wal_level=replica with no concurrent writers.",
+      "evidence": "fixture/03-repack.sql. The report expected 'CONCURRENTLY uses logical decoding'; observed it completing under wal_level=replica when no other session was writing. Interpretation: the slot/WAL cost surfaces under live concurrent writes, not as an unconditional wal_level=logical requirement. The post states this as 'cost appears under concurrent writes', not as a hard prerequisite.",
+      "honesty": "Observed on this beta build with no concurrent writer; the under-load path (slot/WAL amplification) was not driven here."
+    },
+    {
+      "id": "guc_defaults",
+      "claim": "Parallel autovacuum and async I/O are present but conservatively defaulted.",
+      "evidence": "fixture/04-guc.sql. SHOW autovacuum_max_parallel_workers -> 0 (opt-in; parallelizes index vacuum of large tables). SHOW io_method -> worker (default), io_max_concurrency -> 64, context=postmaster (restart to change).",
+      "value": "autovacuum_max_parallel_workers=0, io_method=worker, io_max_concurrency=64"
+    }
+  ],
+
+  "cited_not_measured": [
+    "AIO itself was introduced in PostgreSQL 18; only its default behavior / worker mode was confirmed on 19beta1 here.",
+    "Whether REPACK CONCURRENTLY uses logical decoding under live concurrent-write load (slot/WAL cost) — the report's mechanism claim was not driven with a concurrent writer in this run.",
+    "SQL/PGQ conformance breadth beyond the fixed-length patterns tested (full pattern grammar, edge-direction variants, ANY/ALL path modes)."
+  ],
+
+  "honest_limits": [
+    "PostgreSQL 19 was at Beta 1. Syntax, library/extension names, EXPLAIN option spelling, and GUC defaults MAY change before GA — every finding is pinned to the 19beta1 image and stated as such in the post.",
+    "Single-container, no concurrent writers, synthetic tables. This checks capability/limit/defaults, not production throughput or lock behavior under real traffic.",
+    "Backfill: the original SQL fixtures and container were discarded; run.sh + fixture/*.sql are reconstructed from firsthand-benchmark.md. Deterministic feature behaviors should still reproduce on the same image."
+  ]
+}

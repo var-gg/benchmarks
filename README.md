@@ -54,6 +54,7 @@ most public benchmarks, not less.
 | 2026-06-19 | [2026-06-19-nats-jetstream-scheduler](./runs/2026-06-19-nats-jetstream-scheduler/) | [KO](https://var.gg/ko/blog/nats-jetstream-scheduler) | capability_verification (backfill) |
 | 2026-06-18 | [2026-06-18-gateway-api-ingress-migration](./runs/2026-06-18-gateway-api-ingress-migration/) | [KO](https://var.gg/ko/blog/gateway-api-ingress-migration) | conversion_verification (backfill) |
 | 2026-06-18 | [2026-06-18-vite-8-rolldown](./runs/2026-06-18-vite-8-rolldown/) | [EN](https://var.gg/en/blog/vite-8-rolldown) · [KO](https://var.gg/ko/blog/vite-8-rolldown) | benchmark (backfill) |
+| 2026-06-17 | [2026-06-17-postgresql-19-deep-dive](./runs/2026-06-17-postgresql-19-deep-dive/) | [KO](https://var.gg/ko/blog/postgresql-19-deep-dive) | capability_verification (backfill) |
 | 2026-06-16 | [2026-06-16-typescript-native-tsgo](./runs/2026-06-16-typescript-native-tsgo/) | [EN](https://var.gg/en/blog/typescript-native-tsgo) · [KO](https://var.gg/ko/blog/typescript-native-tsgo) | benchmark (backfill) |
 <!-- RUNS:END -->
 

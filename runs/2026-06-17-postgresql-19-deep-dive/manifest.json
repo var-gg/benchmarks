@@ -1,0 +1,43 @@
+{
+  "run_id": "2026-06-17-postgresql-19-deep-dive",
+  "post_slug": "postgresql-19-deep-dive",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/postgresql-19-deep-dive"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-17T00:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The experiment ran on 2026-06-17 inside an isolated Docker container (postgres:19beta1). The container and the pulled image were removed after the run per the finite-disk policy; only firsthand-benchmark.md survived (this predates packaging, so no SQL fixtures or hashes were captured at the time). fixture/*.sql + run.sh are reconstructed from that recorded methodology so a third party can reproduce the METHOD against the same pinned image. The findings are deterministic capability/limit observations (a syntax accepts or errors; a command exists or not; a GUC has a fixed default), so re-running against postgres:19beta1 should reproduce them. Production Cloud SQL was never touched.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64 host, Docker Desktop; PostgreSQL under test runs inside the container",
+    "container": "docker run --name pg19test postgres:19beta1 (isolated, production DB untouched)",
+    "note": "This is a feature/syntax capability + limit check (does CREATE PROPERTY GRAPH parse, does a quantifier error, does REPACK exist, what is a GUC default) plus a couple of behavior observations. It is NOT a throughput/latency benchmark; host CPU/RAM do not change the accept/error or the default values."
+  },
+
+  "subject": {
+    "name": "PostgreSQL",
+    "version": "19beta1",
+    "build": "Debian 19~beta1-1.pgdg13+1, gcc 14.2.0, 64-bit",
+    "install": "Docker Hub official image postgres:19beta1",
+    "note": "Beta 1. SELECT version() -> 'PostgreSQL 19beta1 (Debian 19~beta1-1.pgdg13+1) ... gcc 14.2.0, 64-bit'. Syntax, extension/library names, and GUC defaults MAY change before GA."
+  },
+
+  "data_source": {
+    "name": "none (local container, synthetic fixtures)",
+    "live": false,
+    "note": "No external live database. Small synthetic tables (person/knows graph, a 200k-row fact + 1k-row dim for the planner probe). Nothing drifts between runs given the same pinned image."
+  },
+
+  "received_images": [
+    "postgres:19beta1"
+  ],
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "Container + pulled image removed after the run; no hashes were captured at the time. Reconstructed harness (run.sh + fixture/*.sql) is committed instead of fabricating artifacts, and that is stated plainly. results.json holds the capabilities, limits, and the two behavior observations recorded on 2026-06-17."
+  }
+}
