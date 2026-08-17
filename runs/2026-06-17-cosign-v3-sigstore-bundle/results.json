@@ -1,0 +1,72 @@
+{
+  "kind": "capability_verification",
+  "note": "Verifies cosign v3.1.1 signing BEHAVIOR and Sigstore bundle SHAPE, not timing. No statistical distribution applies: each observation is a deterministic pass/fail from running the documented command sequence. Source of the central artifact: bundle-default-redacted.json.",
+
+  "bundle_shape_matrix": {
+    "subject": "cosign v3.1.1 (windows/amd64), sign-blob with a local keypair",
+    "method": "Generate keypair, sign a blob two ways, inspect verificationMaterial keys of each --bundle output.",
+    "default_signing": {
+      "command": "cosign sign-blob --key cosign.key --bundle artifact.sigstore.json artifact.txt",
+      "mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
+      "verificationMaterial_keys": ["publicKey", "tlogEntries", "timestampVerificationData"],
+      "rekor_upload": true,
+      "rekor_entry": { "log": "rekor.sigstore.dev", "kind": "hashedrekord", "version": "0.0.1" },
+      "tsa_timestamp": true,
+      "signature_type": "messageSignature",
+      "evidence": "bundle-default-redacted.json"
+    },
+    "offline_signing": {
+      "command": "cosign signing-config create --no-default-rekor --no-default-tsa --no-default-fulcio --no-default-oidc --out signing-config-offline.json  &&  cosign sign-blob --key cosign.key --signing-config signing-config-offline.json --bundle artifact-offline.sigstore.json artifact.txt",
+      "mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
+      "verificationMaterial_keys": ["publicKey"],
+      "rekor_upload": false,
+      "tsa_timestamp": false,
+      "signature_type": "messageSignature",
+      "signing_config_mediaType": "application/vnd.dev.sigstore.signingconfig.v0.2+json"
+    }
+  },
+
+  "behaviors_verified": [
+    {
+      "id": "default_uploads_to_public_rekor",
+      "claim": "A key-based `sign-blob` (no Fulcio/keyless involved) STILL uploads to the public transparency log by default: the bundle's verificationMaterial contains a tlogEntries entry on rekor.sigstore.dev (hashedrekord v0.0.1, with inclusionProof + inclusionPromise) AND an RFC3161 TSA timestamp. 'Signed with a key' does not mean 'offline'.",
+      "verified_on": "cosign v3.1.1 windows/amd64",
+      "evidence": "bundle-default-redacted.json (verificationMaterial has publicKey + tlogEntries + timestampVerificationData)"
+    },
+    {
+      "id": "tlog_upload_false_deprecated",
+      "claim": "`--tlog-upload=false` is deprecated in v3 and is rejected when combined with a signing-config. cosign prints: 'Flag --tlog-upload has been deprecated, prefer using a --signing-config file with no transparency log services', and errors 'Error: --tlog-upload=false is not supported with --signing-config or --use-signing-config.' The offline path is now a `--signing-config` file created with --no-default-rekor/--no-default-tsa.",
+      "verified_on": "cosign v3.1.1 windows/amd64",
+      "evidence": "run.sh step 3; command stderr recorded in firsthand notes"
+    },
+    {
+      "id": "offline_bundle_is_self_contained",
+      "claim": "Signing with the offline signing-config produces the SAME bundle.v0.3+json mediaType but its verificationMaterial has only ['publicKey'] — zero tlogEntries, no timestamp. Same format, two shapes: 'public-log' vs 'self-contained'.",
+      "verified_on": "cosign v3.1.1 windows/amd64",
+      "evidence": "run.sh step 3 diff of the two bundles' verificationMaterial keys"
+    },
+    {
+      "id": "triangulate_deprecated_for_v4",
+      "claim": "For OCI image signatures, `cosign triangulate` warns it is deprecated and 'will be removed in v4.0.0 — use `oras discover` or `cosign tree`'. Signatures attach both as the legacy `sha256-<digest>.sig` tag AND as an OCI referrer — the tag-based discovery -> referrers-API transition that v3->v4 is steering toward.",
+      "verified_on": "cosign v3.1.1 windows/amd64, local registry:2",
+      "evidence": "run.sh step 4 (optional, needs local Docker registry); command stderr recorded in firsthand notes"
+    },
+    {
+      "id": "offline_verify_warns_insecure",
+      "claim": "Verifying an offline (no-tlog) signature requires `--insecure-ignore-tlog=true`, and cosign prints 'Skipping tlog verification is an insecure practice...'. The tool itself flags that dropping transparency is a real auditability trade-off, not a free win.",
+      "verified_on": "cosign v3.1.1 windows/amd64",
+      "evidence": "run.sh step 4 verify; command stderr recorded in firsthand notes"
+    }
+  ],
+
+  "not_measured": {
+    "linux_macos": "Only windows/amd64 was run. cosign is cross-platform Go; behavior is expected to match but was not measured on other OSes.",
+    "keyless_fulcio_flow": "This run covers key-based signing only. The keyless (Fulcio OIDC) flow is discussed in the post conceptually, not measured here.",
+    "rekor_v2_internals": "Rekor v2 tile/tessera storage internals are cited from Sigstore docs, not inspected firsthand."
+  },
+
+  "cited_not_measured": [
+    { "claim": "Sigstore bundle spec v0.3 / signing-config v0.2 media types.", "source": "sigstore/protobuf-specs", "url": "https://github.com/sigstore/protobuf-specs" },
+    { "claim": "Latest cosign is v3.1.2 (2026-07-17); v4 will remove the deprecated flags.", "source": "sigstore/cosign releases", "url": "https://github.com/sigstore/cosign/releases" }
+  ]
+}

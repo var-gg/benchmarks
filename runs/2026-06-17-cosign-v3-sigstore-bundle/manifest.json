@@ -1,0 +1,38 @@
+{
+  "run_id": "2026-06-17-cosign-v3-sigstore-bundle",
+  "post_slug": "cosign-v3-sigstore-bundle",
+  "post_url": {
+    "ko": "https://var.gg/ko/blog/cosign-v3-sigstore-bundle"
+  },
+
+  "executed_by": "agent",
+  "executed_at": "2026-06-17T10:00:00Z",
+  "operator": "curioustore",
+  "backfilled": true,
+  "backfill_note": "The firsthand session ran on 2026-06-17 (cosign v3.1.1, windows/amd64). The ~198 MB cosign binary and the local Docker registry:2 container were removed afterward per the finite-disk firsthand-cleanup policy. run.sh here is reconstructed from the run's recorded command sequence so a third party can reproduce the METHOD end-to-end (it downloads cosign v3.1.1 fresh). bundle-default-redacted.json is the surviving structural artifact from that run, with cryptographic values redacted. No hashes of the original binary/artifacts were captured at run time; that is stated plainly rather than fabricating them.",
+
+  "kind": "capability_verification",
+  "environment": {
+    "os": "Windows 11 x64",
+    "docker": "Docker Server 29.4.3 (local registry:2 only; no production contact)",
+    "go": "not installed (cosign used as a prebuilt static binary, ~198 MB)",
+    "note": "This is a behavior / bundle-shape verification of cosign's default vs offline signing, not a timing benchmark. CPU/RAM do not affect the result and are intentionally omitted."
+  },
+
+  "subject": {
+    "name": "cosign",
+    "version": "v3.1.1",
+    "build_date": "2026-06-09T12:10:44Z",
+    "go_version": "go1.26.3",
+    "platform": "windows/amd64",
+    "install": "GitHub release sigstore/cosign v3.1.1 (standalone binary)",
+    "note": "Version confirmed firsthand via `cosign version` (GitVersion v3.1.1)."
+  },
+
+  "drift_warning": "As of 2026-07-17 the latest cosign is v3.1.2; this run is pinned to v3.1.1 (tested 2026-06-09 build). The v3 behaviors verified here — default sign-blob uploads to the public Rekor + TSA, `--tlog-upload=false` deprecated in favor of a `--signing-config` file, and `triangulate` deprecated for removal in v4 — are documented as still holding in v3.1.x, but re-run ./run.sh against a pinned version to confirm on your build. The public tlog entry values (logIndex, integratedTime, merkle proof) in bundle-default-redacted.json are a point-in-time snapshot of the live rekor.sigstore.dev log and will not match a fresh run.",
+
+  "raw_artifacts": {
+    "retention_policy": "discarded at run time (finite local disk)",
+    "note": "The cosign binary, generated demo keypair, signed artifacts, offline bundle, and the local registry:2 container were deleted after the run. The redacted default bundle is the one structural artifact retained. Reconstructed harness (run.sh) is committed instead of fabricated hashes."
+  }
+}

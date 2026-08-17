@@ -1,0 +1,49 @@
+{
+  "_comment": "REDACTED SAMPLE — the default `cosign sign-blob --key cosign.key --bundle` output from the 2026-06-17 run (cosign v3.1.1, windows/amd64). Cryptographic values (signatures, digests, hashes, checkpoint, canonicalizedBody) are replaced with '<redacted:...>' placeholders; they came from a throwaway demo keypair and are not reproducible. The EVIDENCE this file carries is STRUCTURAL: a key-based sign-blob bundle contains not only publicKey but also tlogEntries (a public rekor.sigstore.dev entry) AND timestampVerificationData (a public TSA timestamp). That is the post's central finding — 'signed with a key' does NOT mean 'offline'. Re-run ./run.sh to regenerate a real bundle and diff its verificationMaterial keys.",
+  "mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
+  "verificationMaterial": {
+    "publicKey": {
+      "hint": "<redacted:base64 key hint>"
+    },
+    "tlogEntries": [
+      {
+        "logIndex": "1849404613",
+        "logId": {
+          "keyId": "<redacted:base64 rekor log keyId>"
+        },
+        "kindVersion": {
+          "kind": "hashedrekord",
+          "version": "0.0.1"
+        },
+        "integratedTime": "1781690358",
+        "inclusionPromise": {
+          "signedEntryTimestamp": "<redacted:base64 SET>"
+        },
+        "inclusionProof": {
+          "logIndex": "1727500351",
+          "rootHash": "<redacted:base64 merkle root>",
+          "treeSize": "1727500377",
+          "hashes": "<redacted:20 base64 merkle hashes>",
+          "checkpoint": {
+            "envelope": "<redacted:rekor.sigstore.dev signed checkpoint>"
+          }
+        },
+        "canonicalizedBody": "<redacted:base64 hashedrekord body>"
+      }
+    ],
+    "timestampVerificationData": {
+      "rfc3161Timestamps": [
+        {
+          "signedTimestamp": "<redacted:base64 RFC3161 TSA timestamp>"
+        }
+      ]
+    }
+  },
+  "messageSignature": {
+    "messageDigest": {
+      "algorithm": "SHA2_256",
+      "digest": "<redacted:base64 sha256 of artifact.txt>"
+    },
+    "signature": "<redacted:base64 ECDSA signature>"
+  }
+}
